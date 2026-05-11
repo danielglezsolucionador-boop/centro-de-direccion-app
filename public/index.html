@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CEREBRO — Sistema Multi-Agente</title>
+<title>CENTRO DE DIRECCION — Sistema Multi-Agente</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -93,7 +93,7 @@
 <body>
 
 <div class="header">
-  <h1>🧠 CEREBRO</h1>
+  <h1>🧠 CENTRO DE DIRECCION</h1>
   <p>Sistema Multi-Agente de Dirección Estratégica</p>
   <div class="fecha" id="fecha"></div>
 </div>
@@ -127,7 +127,7 @@
     <div class="step" id="step1">1. Propuesta enviada</div>
     <div class="step" id="step2">2. Debate entre agentes</div>
     <div class="step" id="step3">3. Mejorando propuesta</div>
-    <div class="step" id="step4">4. Cerebro decide</div>
+    <div class="step" id="step4">4. Centro de Direccion decide</div>
   </div>
   <div id="resultado-activar"></div>
 </div>
@@ -217,7 +217,7 @@ function renderResultado(data) {
   }
   if(decision){
     const dc=decision.decision==='aprobado'?'dec-aprobado':decision.decision==='rechazado'?'dec-rechazado':'dec-modificado';
-    html+=`<div class="decision-card"><div class="seccion-titulo">CEREBRO — DECISIÓN FINAL</div><span class="decision-badge ${dc}">${(decision.decision||'').toUpperCase()}</span><div class="decision-razon">${decision.razon||''}</div>${decision.prioridades?.length?`<div style="font-size:11px;color:#FFD700;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;opacity:.8">Prioridades</div><ul class="prioridades-list">${decision.prioridades.map(p=>`<li>${p}</li>`).join('')}</ul>`:''} ${decision.descartado?.length?`<div style="font-size:11px;color:#7ecac8;margin-bottom:6px;text-transform:uppercase;letter-spacing:1px">Descartado</div>${decision.descartado.map(d=>`<div style="font-size:12px;color:#64748b;margin-bottom:4px">✗ ${d}</div>`).join('')}`:''} ${decision.plazo?`<div style="font-size:12px;color:#00D2FF;margin-top:12px">⏱ Plazo: ${decision.plazo}</div>`:''} ${decision.mensaje_final?`<div class="mensaje-final">"${decision.mensaje_final}"</div>`:''}</div>`;
+    html+=`<div class="decision-card"><div class="seccion-titulo">CENTRO DE DIRECCION — DECISION FINAL</div><span class="decision-badge ${dc}">${(decision.decision||'').toUpperCase()}</span><div class="decision-razon">${decision.razon||''}</div>${decision.prioridades?.length?`<div style="font-size:11px;color:#FFD700;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;opacity:.8">Prioridades</div><ul class="prioridades-list">${decision.prioridades.map(p=>`<li>${p}</li>`).join('')}</ul>`:''} ${decision.descartado?.length?`<div style="font-size:11px;color:#7ecac8;margin-bottom:6px;text-transform:uppercase;letter-spacing:1px">Descartado</div>${decision.descartado.map(d=>`<div style="font-size:12px;color:#64748b;margin-bottom:4px">✗ ${d}</div>`).join('')}`:''} ${decision.plazo?`<div style="font-size:12px;color:#00D2FF;margin-top:12px">⏱ Plazo: ${decision.plazo}</div>`:''} ${decision.mensaje_final?`<div class="mensaje-final">"${decision.mensaje_final}"</div>`:''}</div>`;
   }
   document.getElementById('resultado-activar').innerHTML=html;
 }
