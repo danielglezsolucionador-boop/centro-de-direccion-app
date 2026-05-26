@@ -1,264 +1,528 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CEREBRO — Sistema Multi-Agente</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
-<style>
-  * { box-sizing:border-box; margin:0; padding:0; }
-  body { font-family:'Inter',sans-serif; background:#060d1a; min-height:100vh; color:white; padding:20px; overflow-x:hidden; }
-  body::before { content:''; position:fixed; top:-200px; left:-200px; width:600px; height:600px; background:radial-gradient(circle,rgba(0,210,255,0.12) 0%,transparent 70%); pointer-events:none; z-index:0; }
-  body::after  { content:''; position:fixed; bottom:-200px; right:-200px; width:600px; height:600px; background:radial-gradient(circle,rgba(255,180,0,0.1) 0%,transparent 70%); pointer-events:none; z-index:0; }
-  .header { text-align:center; margin-bottom:28px; padding:32px 20px; border-bottom:1px solid rgba(0,210,255,0.1); position:relative; }
-  .header h1 { font-size:40px; letter-spacing:10px; font-weight:800; background:linear-gradient(90deg,#FFB800,#FFD700,#00D2FF,#00FFE5); background-size:300%; -webkit-background-clip:text; -webkit-text-fill-color:transparent; animation:gradShift 4s ease infinite; margin-bottom:8px; }
-  @keyframes gradShift { 0%{background-position:0%} 50%{background-position:100%} 100%{background-position:0%} }
-  .header p { color:#00c8d4; font-size:13px; letter-spacing:2px; opacity:.85; }
-  .fecha { color:#FFB800; font-size:12px; margin-top:8px; opacity:.9; }
-  .tabs { display:flex; gap:8px; margin-bottom:20px; position:relative; }
-  .tab { flex:1; padding:11px; border-radius:12px; border:1px solid rgba(0,210,255,0.12); background:rgba(0,210,255,0.04); color:#7ecac8; cursor:pointer; font-size:13px; font-weight:600; text-align:center; transition:all .25s; }
-  .tab:hover { border-color:rgba(0,210,255,0.35); color:#00D2FF; background:rgba(0,210,255,0.08); transform:translateY(-1px); }
-  .tab.activo { background:linear-gradient(135deg,rgba(255,184,0,0.18),rgba(0,210,255,0.18)); border-color:rgba(255,184,0,0.5); color:#FFD700; box-shadow:0 0 20px rgba(255,184,0,0.15); }
-  .panel { display:none; } .panel.activo { display:block; }
-  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:16px; }
-  @media(max-width:700px){ .grid2{ grid-template-columns:1fr; } }
-  .card { background:rgba(255,255,255,0.03); border:1px solid rgba(0,210,255,0.1); border-radius:18px; padding:22px; backdrop-filter:blur(10px); transition:border-color .3s,box-shadow .3s; position:relative; }
-  .card:hover { border-color:rgba(0,210,255,0.25); box-shadow:0 8px 32px rgba(0,210,255,0.08); }
-  .card h2 { font-size:11px; font-weight:700; letter-spacing:2.5px; background:linear-gradient(90deg,#FFB800,#FFD700); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-bottom:16px; text-transform:uppercase; }
-  .input-group { margin-bottom:12px; }
-  .input-group label { display:block; font-size:11px; color:#00c8d4; margin-bottom:5px; text-transform:uppercase; letter-spacing:1px; font-weight:600; }
-  input[type="text"],textarea,select { width:100%; background:rgba(0,0,0,0.35); border:1px solid rgba(0,210,255,0.15); border-radius:10px; padding:11px 14px; color:#e2f8f8; font-size:13px; font-family:'Inter',sans-serif; resize:vertical; transition:border-color .2s,box-shadow .2s; }
-  input:focus,textarea:focus,select:focus { outline:none; border-color:rgba(255,184,0,0.6); box-shadow:0 0 0 3px rgba(255,184,0,0.08),0 0 20px rgba(255,184,0,0.1); }
-  select option { background:#060d1a; }
-  .btn { width:100%; padding:14px; border-radius:12px; border:none; cursor:pointer; font-size:14px; font-weight:700; letter-spacing:1.5px; transition:all .25s; font-family:'Inter',sans-serif; }
-  .btn-primary { background:linear-gradient(135deg,#FFB800,#FFD700); color:#060d1a; box-shadow:0 4px 24px rgba(255,184,0,0.35); }
-  .btn-primary:hover { transform:translateY(-2px); box-shadow:0 8px 40px rgba(255,184,0,0.55); }
-  .btn-primary:disabled { opacity:.3; cursor:not-allowed; transform:none; box-shadow:none; }
-  .btn-secondary { background:rgba(0,210,255,0.07); border:1px solid rgba(0,210,255,0.2); color:#00D2FF; margin-top:8px; }
-  .btn-secondary:hover { background:rgba(0,210,255,0.15); box-shadow:0 0 20px rgba(0,210,255,0.15); }
-  .modulo-row { display:flex; justify-content:space-between; align-items:center; padding:11px 0; border-bottom:1px solid rgba(0,210,255,0.06); }
-  .modulo-row:last-child { border-bottom:none; }
-  .modulo-nombre { font-size:13px; color:#b8e8e8; font-weight:500; }
-  .badge { padding:4px 12px; border-radius:20px; font-size:11px; font-weight:700; }
-  .badge-verde { background:rgba(0,255,200,0.12); color:#00FFD1; border:1px solid rgba(0,255,200,0.3); box-shadow:0 0 10px rgba(0,255,200,0.1); }
-  .badge-ambar { background:rgba(255,184,0,0.12); color:#FFD700; border:1px solid rgba(255,184,0,0.35); box-shadow:0 0 10px rgba(255,184,0,0.1); }
-  .badge-rojo  { background:rgba(255,60,60,0.12); color:#ff6b6b; border:1px solid rgba(255,60,60,0.3); }
-  .loading { text-align:center; padding:40px; color:#00c8d4; }
-  .spinner { width:40px; height:40px; border:3px solid rgba(255,184,0,0.15); border-top-color:#FFB800; border-right-color:#00D2FF; border-radius:50%; animation:spin .8s linear infinite; margin:0 auto 14px; }
-  @keyframes spin { to{transform:rotate(360deg)} }
-  .debate-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; margin-bottom:16px; }
-  .agente-card { background:rgba(0,0,0,0.3); border:1px solid rgba(0,210,255,0.1); border-radius:14px; padding:16px; transition:all .25s; }
-  .agente-card:hover { border-color:rgba(255,184,0,0.3); box-shadow:0 4px 20px rgba(255,184,0,0.08); transform:translateY(-2px); }
-  .agente-header { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
-  .agente-nombre { font-size:11px; font-weight:700; background:linear-gradient(90deg,#FFB800,#FFD700); -webkit-background-clip:text; -webkit-text-fill-color:transparent; text-transform:uppercase; letter-spacing:1px; }
-  .agente-critica { font-size:12px; color:#b8e8e8; line-height:1.7; margin-bottom:8px; }
-  .agente-sug { font-size:11px; color:#00c8d4; font-style:italic; margin-top:5px; }
-  .impacto { display:inline-block; padding:3px 10px; border-radius:20px; font-size:10px; font-weight:700; margin-top:5px; }
-  .imp-alto { background:rgba(0,255,200,0.12); color:#00FFD1; border:1px solid rgba(0,255,200,0.25); }
-  .imp-medio { background:rgba(255,184,0,0.12); color:#FFD700; border:1px solid rgba(255,184,0,0.25); }
-  .imp-bajo,.imp-negativo { background:rgba(255,60,60,0.12); color:#ff6b6b; }
-  .decision-card { background:linear-gradient(135deg,rgba(255,184,0,0.06),rgba(0,210,255,0.06)); border:1px solid rgba(255,184,0,0.3); border-radius:18px; padding:24px; margin-bottom:16px; box-shadow:0 0 40px rgba(255,184,0,0.08),0 0 80px rgba(0,210,255,0.05); }
-  .decision-badge { display:inline-block; padding:5px 18px; border-radius:20px; font-size:12px; font-weight:700; margin-bottom:14px; letter-spacing:1px; }
-  .dec-aprobado { background:rgba(0,255,200,0.15); color:#00FFD1; border:1px solid rgba(0,255,200,0.4); box-shadow:0 0 20px rgba(0,255,200,0.1); }
-  .dec-rechazado { background:rgba(255,60,60,0.15); color:#ff6b6b; border:1px solid rgba(255,60,60,0.35); }
-  .dec-modificado { background:rgba(255,184,0,0.15); color:#FFD700; border:1px solid rgba(255,184,0,0.4); box-shadow:0 0 20px rgba(255,184,0,0.1); }
-  .decision-razon { font-size:13px; color:#b8e8e8; margin-bottom:16px; line-height:1.8; }
-  .prioridades-list { list-style:none; margin-bottom:14px; }
-  .prioridades-list li { padding:10px 16px; background:rgba(255,184,0,0.06); border:1px solid rgba(255,184,0,0.12); border-radius:10px; margin-bottom:7px; font-size:13px; display:flex; align-items:center; gap:10px; color:#e2f8f8; }
-  .prioridades-list li:hover { background:rgba(255,184,0,0.1); }
-  .prioridades-list li::before { content:"→"; color:#FFD700; font-weight:800; font-size:15px; }
-  .mensaje-final { background:rgba(0,0,0,0.35); border-left:3px solid #FFB800; padding:16px 20px; border-radius:0 12px 12px 0; font-size:14px; color:#e2f8f8; font-style:italic; margin-top:16px; line-height:1.8; }
-  .propuesta-mejorada { background:rgba(0,210,255,0.04); border:1px solid rgba(0,210,255,0.2); border-radius:14px; padding:18px; margin-bottom:16px; }
-  .propuesta-mejorada h3 { font-size:11px; color:#00D2FF; text-transform:uppercase; letter-spacing:1.5px; font-weight:700; margin-bottom:10px; }
-  .propuesta-mejorada p { font-size:13px; color:#b8e8e8; line-height:1.7; }
-  .resultado-form { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:12px; }
-  @media(max-width:600px){ .resultado-form{ grid-template-columns:1fr; } }
-  .historial-item { background:rgba(255,255,255,0.02); border:1px solid rgba(0,210,255,0.08); border-radius:12px; padding:16px; margin-bottom:10px; transition:all .25s; }
-  .historial-item:hover { border-color:rgba(255,184,0,0.25); box-shadow:0 4px 20px rgba(255,184,0,0.06); }
-  .hist-fecha { font-size:11px; color:#00c8d4; margin-bottom:6px; font-weight:600; }
-  .hist-propuesta { font-size:13px; color:#e2f8f8; margin-bottom:8px; line-height:1.6; }
-  .hist-decision { font-size:12px; color:#7ecac8; }
-  .insight-item { background:rgba(0,0,0,0.25); border-left:3px solid #00D2FF; border-radius:0 10px 10px 0; padding:12px 16px; margin-bottom:8px; font-size:13px; color:#b8e8e8; line-height:1.7; }
-  .step-indicator { display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap; }
-  .step { padding:5px 14px; border-radius:20px; font-size:11px; font-weight:600; background:rgba(255,255,255,0.04); color:#7ecac8; border:1px solid rgba(255,255,255,0.08); transition:all .3s; }
-  .step.activo { background:rgba(255,184,0,0.15); color:#FFD700; border-color:rgba(255,184,0,0.5); animation:pulse 1s infinite; }
-  .step.done { background:rgba(0,255,200,0.1); color:#00FFD1; border-color:rgba(0,255,200,0.3); }
-  @keyframes pulse { 0%,100%{box-shadow:0 0 15px rgba(255,184,0,0.2)} 50%{box-shadow:0 0 30px rgba(255,184,0,0.45)} }
-  .seccion-titulo { font-size:11px; text-transform:uppercase; letter-spacing:2.5px; background:linear-gradient(90deg,#FFB800,#FFD700); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin-bottom:14px; padding-bottom:8px; border-bottom:1px solid rgba(255,184,0,0.12); font-weight:700; }
-  ::-webkit-scrollbar { width:4px; }
-  ::-webkit-scrollbar-thumb { background:linear-gradient(#FFB800,#00D2FF); border-radius:4px; }
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cerebro - Executive Operational System</title>
+  <style>
+    :root {
+      color: #f5efe5;
+      background: #090908;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --ink: #f5efe5;
+      --muted: rgba(245, 239, 229, 0.68);
+      --soft: rgba(245, 239, 229, 0.1);
+      --line: rgba(245, 239, 229, 0.14);
+      --graphite: #141311;
+      --gold: #d7ad63;
+      --amber: #c98d4f;
+      --sage: #91ad9e;
+      --risk: #c56f5f;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-width: 320px;
+      margin: 0;
+      overflow-x: hidden;
+      background:
+        radial-gradient(circle at 15% -8%, rgba(215, 173, 99, 0.16), transparent 28rem),
+        radial-gradient(circle at 90% 10%, rgba(145, 173, 158, 0.08), transparent 28rem),
+        linear-gradient(180deg, #0c0b0a 0%, #090908 55%, #0d0c0b 100%);
+    }
+
+    button, input, textarea, select {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      color: inherit;
+      cursor: pointer;
+    }
+
+    .shell {
+      width: min(1240px, 100%);
+      margin: 0 auto;
+      padding: 26px clamp(16px, 4%, 54px) 56px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      min-height: 58px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .mark {
+      display: grid;
+      width: 42px;
+      height: 42px;
+      place-items: center;
+      border-radius: 50%;
+      color: var(--gold);
+      background: linear-gradient(145deg, rgba(245,239,229,0.1), rgba(245,239,229,0.03)), var(--graphite);
+      box-shadow: inset 0 0 0 1px var(--line);
+      font-size: 0.8rem;
+      font-weight: 800;
+    }
+
+    .brand strong { display: block; font-size: 1rem; }
+    .brand span { display: block; color: var(--muted); font-size: 0.86rem; }
+
+    .status-pill {
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(245, 239, 229, 0.06);
+      color: rgba(245, 239, 229, 0.72);
+      box-shadow: inset 0 0 0 1px var(--line);
+      font-size: 0.86rem;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+      gap: clamp(22px, 4%, 56px);
+      align-items: center;
+      min-height: 520px;
+      padding: 56px 0 36px;
+    }
+
+    .eyebrow {
+      margin: 0 0 12px;
+      color: var(--amber);
+      font-size: 0.72rem;
+      font-weight: 800;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    h1, h2, h3, p { margin-top: 0; letter-spacing: 0; }
+
+    h1 {
+      max-width: 760px;
+      margin-bottom: 22px;
+      font-size: 4.8rem;
+      line-height: 0.94;
+      font-weight: 800;
+    }
+
+    h2 {
+      margin-bottom: 8px;
+      font-size: 2rem;
+      line-height: 1;
+    }
+
+    .hero-copy > p:not(.eyebrow) {
+      max-width: 640px;
+      color: var(--muted);
+      font-size: 1.05rem;
+      line-height: 1.7;
+    }
+
+    .command-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 28px;
+    }
+
+    .command-row span {
+      padding: 10px 13px;
+      border-radius: 999px;
+      background: rgba(245,239,229,0.07);
+      box-shadow: inset 0 0 0 1px var(--line);
+      color: rgba(245,239,229,0.82);
+      font-size: 0.86rem;
+    }
+
+    .signal-panel, .panel {
+      border-radius: 8px;
+      background: linear-gradient(150deg, rgba(245,239,229,0.08), rgba(245,239,229,0.025)), rgba(20,19,17,0.72);
+      box-shadow: 0 36px 100px rgba(0,0,0,0.4), inset 0 0 0 1px var(--line);
+    }
+
+    .signal-panel {
+      padding: 28px;
+      min-height: 360px;
+      display: grid;
+      align-content: space-between;
+    }
+
+    .signal-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 22px;
+    }
+
+    .signal {
+      min-height: 104px;
+      padding: 16px;
+      border-radius: 8px;
+      background: rgba(0,0,0,0.22);
+      box-shadow: inset 0 0 0 1px rgba(245,239,229,0.08);
+    }
+
+    .signal span {
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    .signal strong {
+      display: block;
+      margin-top: 8px;
+      font-size: 1.5rem;
+    }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 16px 0;
+    }
+
+    .tab {
+      min-height: 40px;
+      padding: 0 16px;
+      border-radius: 999px;
+      background: rgba(245,239,229,0.06);
+      box-shadow: inset 0 0 0 1px var(--line);
+      color: rgba(245,239,229,0.7);
+    }
+
+    .tab.active {
+      background: rgba(215,173,99,0.16);
+      color: var(--ink);
+    }
+
+    .panel {
+      display: none;
+      padding: 26px;
+      margin-top: 14px;
+    }
+
+    .panel.active { display: block; }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
+      gap: 18px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 7px;
+      color: var(--amber);
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    textarea, input, select {
+      width: 100%;
+      border: 1px solid rgba(245,239,229,0.12);
+      border-radius: 8px;
+      background: rgba(0,0,0,0.28);
+      color: var(--ink);
+      padding: 12px 13px;
+      outline: none;
+    }
+
+    textarea:focus, input:focus, select:focus {
+      border-color: rgba(215,173,99,0.55);
+      box-shadow: 0 0 0 3px rgba(215,173,99,0.08);
+    }
+
+    .field { margin-bottom: 14px; }
+
+    .button {
+      min-height: 46px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, var(--gold), var(--amber));
+      color: #14110c;
+      padding: 0 18px;
+      font-weight: 800;
+    }
+
+    .button.secondary {
+      background: rgba(245,239,229,0.07);
+      color: var(--ink);
+      box-shadow: inset 0 0 0 1px var(--line);
+    }
+
+    .result {
+      margin-top: 18px;
+      padding: 18px;
+      border-radius: 8px;
+      background: rgba(0,0,0,0.2);
+      color: rgba(245,239,229,0.78);
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .quiet-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .quiet-item {
+      padding: 15px;
+      border-radius: 8px;
+      background: rgba(0,0,0,0.22);
+      box-shadow: inset 0 0 0 1px rgba(245,239,229,0.08);
+    }
+
+    .quiet-item small {
+      color: var(--muted);
+    }
+
+    .footer {
+      margin-top: 28px;
+      color: rgba(245,239,229,0.48);
+      font-size: 0.86rem;
+    }
+
+    @media (max-width: 860px) {
+      .hero, .form-grid { grid-template-columns: 1fr; }
+      h1 { font-size: 3.4rem; }
+      .signal-panel { min-height: auto; }
+    }
+
+    @media (max-width: 520px) {
+      .shell { padding: 18px 14px 32px; }
+      .topbar { align-items: flex-start; flex-direction: column; }
+      h1 { max-width: 315px; font-size: 2.34rem; line-height: 1.05; }
+      .command-row span, .tab { width: 100%; text-align: center; }
+      .signal-grid { grid-template-columns: 1fr; }
+      .panel { padding: 18px; }
+    }
+  </style>
 </head>
 <body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="mark">CB</div>
+        <div>
+          <strong>Cerebro</strong>
+          <span>Executive Cognitive Operational System</span>
+        </div>
+      </div>
+      <div class="status-pill" id="runtimeStatus">runtime loading</div>
+    </header>
 
-<div class="header">
-  <h1>🧠 CEREBRO</h1>
-  <p>Sistema Multi-Agente de Dirección Estratégica</p>
-  <div class="fecha" id="fecha"></div>
-</div>
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">Executive operational cockpit</p>
+        <h1>Decide only when evidence can survive pressure.</h1>
+        <p>Cerebro now routes every proposal through governance, decision trace, operational memory, and provider abstraction before any AI execution.</p>
+        <div class="command-row">
+          <span>CEO override ready</span>
+          <span>approval gates active</span>
+          <span>direct provider calls isolated</span>
+        </div>
+      </div>
 
-<div class="tabs">
-  <div class="tab activo" onclick="tab('activar')">⚡ Activar</div>
-  <div class="tab" onclick="tab('resultado')">📊 Resultados</div>
-  <div class="tab" onclick="tab('aprender')">🔁 Aprendizaje</div>
-  <div class="tab" onclick="tab('historial')">📋 Historial</div>
-</div>
+      <aside class="signal-panel">
+        <div>
+          <p class="eyebrow">Operational state</p>
+          <h2>Governed prototype</h2>
+          <p style="color: var(--muted)">Human Cabin focuses on critical decisions, business impact, governance state, and action clarity.</p>
+        </div>
+        <div class="signal-grid">
+          <div class="signal"><span>Governance</span><strong id="govSignal">active</strong></div>
+          <div class="signal"><span>Provider</span><strong id="providerSignal">checking</strong></div>
+          <div class="signal"><span>Memory</span><strong id="memorySignal">active</strong></div>
+          <div class="signal"><span>Trace</span><strong id="traceSignal">active</strong></div>
+        </div>
+      </aside>
+    </section>
 
-<div id="tab-activar" class="panel activo">
-  <div class="grid2">
-    <div class="card">
-      <h2>📋 Estado de Módulos</h2>
-      <div class="modulo-row"><span class="modulo-nombre">Laboratorio de Crecimiento</span><span class="badge badge-ambar">Ámbar</span></div>
-      <div class="modulo-row"><span class="modulo-nombre">Buscador de Tendencias</span><span class="badge badge-verde">Verde ✅</span></div>
-      <div class="modulo-row"><span class="modulo-nombre">Sniff Amazon</span><span class="badge badge-rojo">Bloqueado</span></div>
-      <div class="modulo-row"><span class="modulo-nombre">MCF Contable</span><span class="badge badge-rojo">Rojo</span></div>
-      <div class="modulo-row"><span class="modulo-nombre">Creador de APIs</span><span class="badge badge-ambar">Ámbar</span></div>
-    </div>
-    <div class="card">
-      <h2>🚀 Propuesta al Sistema</h2>
-      <div class="input-group"><label>Propuesta o idea a evaluar</label><textarea id="propuesta" rows="3" placeholder="Ej: Publicar contenido diario en TikTok usando IA para generar leads..."></textarea></div>
-      <div class="input-group"><label>Contexto adicional (opcional)</label><input type="text" id="contexto" placeholder="Ej: Presupuesto $0, 0 seguidores"/></div>
-      <div class="input-group"><label>Notas del día</label><input type="text" id="notas" placeholder="¿Qué pasó hoy? ¿Qué te bloqueó?"/></div>
-      <button class="btn btn-primary" id="btnActivar" onclick="activar()">⚡ ACTIVAR SISTEMA</button>
-    </div>
-  </div>
-  <div id="pasos" style="display:none" class="step-indicator">
-    <div class="step" id="step1">1. Propuesta enviada</div>
-    <div class="step" id="step2">2. Debate entre agentes</div>
-    <div class="step" id="step3">3. Mejorando propuesta</div>
-    <div class="step" id="step4">4. Cerebro decide</div>
-  </div>
-  <div id="resultado-activar"></div>
-</div>
+    <nav class="tabs" aria-label="Cerebro sections">
+      <button class="tab active" data-tab="activar">Activate</button>
+      <button class="tab" data-tab="resultado">Results</button>
+      <button class="tab" data-tab="aprender">Learning</button>
+      <button class="tab" data-tab="historial">History</button>
+      <button class="tab" data-tab="trazas">Trace</button>
+    </nav>
 
-<div id="tab-resultado" class="panel">
-  <div class="card">
-    <h2>📊 Registrar Resultado de Acción</h2>
-    <div class="input-group"><label>Acción ejecutada</label><input type="text" id="r-accion" placeholder="Ej: Publiqué 3 videos en TikTok"/></div>
-    <div class="resultado-form">
-      <div class="input-group"><label>Resultado</label><select id="r-resultado"><option value="alto impacto">Alto impacto</option><option value="impacto medio">Impacto medio</option><option value="bajo impacto">Bajo impacto</option><option value="sin impacto">Sin impacto</option><option value="fallido">Fallido</option></select></div>
-      <div class="input-group"><label>Leads generados</label><input type="text" id="r-leads" placeholder="0"/></div>
-      <div class="input-group"><label>Ingresos ($)</label><input type="text" id="r-ingresos" placeholder="0"/></div>
-      <div class="input-group"><label>Notas</label><input type="text" id="r-notas" placeholder="Qué aprendiste..."/></div>
-    </div>
-    <button class="btn btn-primary" onclick="registrarResultado()">💾 Registrar</button>
-  </div>
-  <div id="lista-resultados" style="margin-top:16px"></div>
-</div>
+    <section class="panel active" id="panel-activar">
+      <div class="form-grid">
+        <div>
+          <p class="eyebrow">Proposal evaluation</p>
+          <h2>Submit a reversible decision first.</h2>
+          <p style="color: var(--muted)">If the proposal implies production, deletion, secrets, irreversible changes, or governance bypass, Cerebro blocks or requests CEO approval before provider execution.</p>
+        </div>
+        <div>
+          <div class="field">
+            <label for="propuesta">Proposal</label>
+            <textarea id="propuesta" rows="4" placeholder="Evaluate a low-risk commercial action..."></textarea>
+          </div>
+          <div class="field">
+            <label for="contexto">Context</label>
+            <input id="contexto" placeholder="Budget, constraints, deadline" />
+          </div>
+          <button class="button" id="activateButton">Evaluate</button>
+        </div>
+      </div>
+      <div class="result" id="activateResult">Awaiting proposal.</div>
+    </section>
 
-<div id="tab-aprender" class="panel">
-  <div class="card" style="margin-bottom:16px">
-    <h2>🔁 Motor de Aprendizaje</h2>
-    <p style="font-size:13px;color:#7ecac8;margin-bottom:16px;line-height:1.7">Analiza los resultados registrados y genera insights para mejorar decisiones futuras. Necesitas al menos 2 resultados registrados.</p>
-    <button class="btn btn-primary" onclick="ejecutarAprendizaje()">🧠 Analizar y Aprender</button>
-  </div>
-  <div id="resultado-aprendizaje"></div>
-</div>
+    <section class="panel" id="panel-resultado">
+      <p class="eyebrow">Operational results</p>
+      <h2>Register outcome evidence.</h2>
+      <div class="form-grid">
+        <div>
+          <div class="field"><label for="rAccion">Action</label><input id="rAccion" /></div>
+          <div class="field"><label for="rNotas">Notes</label><input id="rNotas" /></div>
+        </div>
+        <div>
+          <div class="field"><label for="rResultado">Result</label><select id="rResultado"><option>impacto medio</option><option>alto impacto</option><option>bajo impacto</option><option>fallido</option></select></div>
+          <div class="field"><label for="rIngresos">Revenue</label><input id="rIngresos" type="number" value="0" /></div>
+          <button class="button" id="resultButton">Register</button>
+        </div>
+      </div>
+      <div class="quiet-list" id="resultList"></div>
+    </section>
 
-<div id="tab-historial" class="panel">
-  <div style="margin-bottom:16px;display:flex;justify-content:space-between;align-items:center">
-    <div class="seccion-titulo" style="margin:0;border:none;padding:0">Últimas decisiones</div>
-    <button class="btn btn-secondary" style="width:auto;padding:6px 16px;font-size:12px" onclick="cargarHistorial()">🔄 Actualizar</button>
-  </div>
-  <div id="lista-historial"></div>
-</div>
+    <section class="panel" id="panel-aprender">
+      <p class="eyebrow">Learning loop</p>
+      <h2>Learn only from registered evidence.</h2>
+      <button class="button secondary" id="learnButton">Run learning check</button>
+      <div class="result" id="learnResult">Learning requires at least two registered results.</div>
+    </section>
 
-<script>
-document.getElementById('fecha').textContent = new Date().toLocaleDateString('es-ES',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+    <section class="panel" id="panel-historial">
+      <p class="eyebrow">Decision history</p>
+      <h2>Recent decisions.</h2>
+      <div class="quiet-list" id="historyList"></div>
+    </section>
 
-function tab(id) {
-  const ids=['activar','resultado','aprender','historial'];
-  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('activo',ids[i]===id));
-  ids.forEach(p=>document.getElementById('tab-'+p).classList.toggle('activo',p===id));
-  if(id==='historial') cargarHistorial();
-  if(id==='resultado') cargarResultados();
-}
+    <section class="panel" id="panel-trazas">
+      <p class="eyebrow">Decision traceability</p>
+      <h2>Governance evidence.</h2>
+      <div class="quiet-list" id="traceList"></div>
+    </section>
 
-function setStep(n) {
-  document.getElementById('pasos').style.display='flex';
-  [1,2,3,4].forEach(i=>{
-    const el=document.getElementById('step'+i);
-    el.className='step'+(i<n?' done':i===n?' activo':'');
-  });
-}
+    <p class="footer">Cerebro Phase 2 governed prototype. No irreversible action executes without CEO approval.</p>
+  </main>
 
-async function activar() {
-  const propuesta=document.getElementById('propuesta').value.trim();
-  const contexto=document.getElementById('contexto').value.trim();
-  const notas=document.getElementById('notas').value.trim();
-  if(!propuesta){alert('Escribe una propuesta');return;}
-  const btn=document.getElementById('btnActivar');
-  btn.disabled=true; btn.textContent='⏳ Procesando...';
-  document.getElementById('resultado-activar').innerHTML='<div class="loading"><div class="spinner"></div><p>Los agentes están debatiendo...</p></div>';
-  setStep(1); setTimeout(()=>setStep(2),3000); setTimeout(()=>setStep(3),8000); setTimeout(()=>setStep(4),13000);
-  try {
-    const r=await fetch('/api/activar',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({propuesta,contexto,notas})});
-    const data=await r.json(); setStep(5);
-    if(!data.success){document.getElementById('resultado-activar').innerHTML=`<div class="card"><p style="color:#ff6b6b">❌ ${data.error}</p><p style="color:#7ecac8;font-size:12px;margin-top:8px">Funcionará cuando tengas saldo en Anthropic.</p></div>`;return;}
-    renderResultado(data);
-  } catch(e){document.getElementById('resultado-activar').innerHTML=`<div class="card"><p style="color:#ff6b6b">❌ ${e.message}</p></div>`;}
-  finally{btn.disabled=false;btn.textContent='⚡ ACTIVAR SISTEMA';}
-}
-
-function renderResultado(data) {
-  const{debate,decision}=data; let html='';
-  if(debate?.criticas){
-    html+='<div class="seccion-titulo">DEBATE — MESA DE DECISIÓN</div><div class="debate-grid">';
-    Object.values(debate.criticas).forEach(c=>{
-      const imp=c.impacto_ventas||c.impacto_marketing||c.roi_estimado||c.viabilidad||'';
-      const ic=imp==='alto'?'imp-alto':imp==='medio'?'imp-medio':'imp-bajo';
-      html+=`<div class="agente-card"><div class="agente-header"><span style="font-size:18px">${c.emoji||'🤖'}</span><span class="agente-nombre">${c.agente}</span></div><div class="agente-critica">${c.critica||c.raw||'Sin respuesta'}</div>${imp?`<span class="impacto ${ic}">${imp}</span>`:''} ${c.sugerencia?`<div class="agente-sug">→ ${c.sugerencia}</div>`:''} ${c.oportunidad?`<div class="agente-sug">💡 ${c.oportunidad}</div>`:''}</div>`;
+  <script>
+    const tabs = document.querySelectorAll(".tab");
+    tabs.forEach((button) => {
+      button.addEventListener("click", () => {
+        tabs.forEach((tab) => tab.classList.toggle("active", tab === button));
+        document.querySelectorAll(".panel").forEach((panel) => panel.classList.remove("active"));
+        document.getElementById(`panel-${button.dataset.tab}`).classList.add("active");
+        if (button.dataset.tab === "historial") loadHistory();
+        if (button.dataset.tab === "resultado") loadResults();
+        if (button.dataset.tab === "trazas") loadTraces();
+      });
     });
-    html+='</div>';
-  }
-  if(debate?.propuesta_mejorada?.propuesta_mejorada){
-    html+=`<div class="propuesta-mejorada"><h3>✨ Propuesta mejorada</h3><p>${debate.propuesta_mejorada.propuesta_mejorada}</p>${(debate.propuesta_mejorada.cambios_principales||[]).map(c=>`<div style="font-size:11px;color:#7ecac8;margin-top:5px">• ${c}</div>`).join('')}</div>`;
-  }
-  if(decision){
-    const dc=decision.decision==='aprobado'?'dec-aprobado':decision.decision==='rechazado'?'dec-rechazado':'dec-modificado';
-    html+=`<div class="decision-card"><div class="seccion-titulo">CEREBRO — DECISIÓN FINAL</div><span class="decision-badge ${dc}">${(decision.decision||'').toUpperCase()}</span><div class="decision-razon">${decision.razon||''}</div>${decision.prioridades?.length?`<div style="font-size:11px;color:#FFD700;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;opacity:.8">Prioridades</div><ul class="prioridades-list">${decision.prioridades.map(p=>`<li>${p}</li>`).join('')}</ul>`:''} ${decision.descartado?.length?`<div style="font-size:11px;color:#7ecac8;margin-bottom:6px;text-transform:uppercase;letter-spacing:1px">Descartado</div>${decision.descartado.map(d=>`<div style="font-size:12px;color:#64748b;margin-bottom:4px">✗ ${d}</div>`).join('')}`:''} ${decision.plazo?`<div style="font-size:12px;color:#00D2FF;margin-top:12px">⏱ Plazo: ${decision.plazo}</div>`:''} ${decision.mensaje_final?`<div class="mensaje-final">"${decision.mensaje_final}"</div>`:''}</div>`;
-  }
-  document.getElementById('resultado-activar').innerHTML=html;
-}
 
-async function registrarResultado() {
-  const accion=document.getElementById('r-accion').value.trim();
-  if(!accion){alert('Escribe la acción ejecutada');return;}
-  await fetch('/api/resultado',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({accion,resultado:document.getElementById('r-resultado').value,leads:parseInt(document.getElementById('r-leads').value)||0,ingresos:parseFloat(document.getElementById('r-ingresos').value)||0,notas:document.getElementById('r-notas').value})});
-  document.getElementById('r-accion').value=''; document.getElementById('r-leads').value=''; document.getElementById('r-ingresos').value=''; document.getElementById('r-notas').value='';
-  cargarResultados();
-}
+    async function jsonFetch(url, options) {
+      const response = await fetch(url, options);
+      return response.json();
+    }
 
-async function cargarResultados() {
-  try {
-    const r=await fetch('/api/resultados'); const data=await r.json();
-    if(!data.registros?.length){document.getElementById('lista-resultados').innerHTML='<div class="card"><p style="color:#7ecac8;font-size:13px">Sin resultados aún.</p></div>';return;}
-    document.getElementById('lista-resultados').innerHTML=data.registros.map(r=>`<div class="historial-item"><div class="hist-fecha">${new Date(r.fecha).toLocaleString('es-ES')}</div><div class="hist-propuesta">${r.accion}</div><div class="hist-decision">Resultado: ${r.resultado} | Leads: ${r.leads} | Ingresos: $${r.ingresos}</div>${r.notas?`<div style="font-size:11px;color:#7ecac8;margin-top:4px">${r.notas}</div>`:''}</div>`).join('');
-  } catch(e){}
-}
+    async function loadRuntime() {
+      const runtime = await jsonFetch("/runtime/status");
+      document.getElementById("runtimeStatus").textContent = runtime.status;
+      document.getElementById("providerSignal").textContent = runtime.provider_ready ? "ready" : "not ready";
+      document.getElementById("memorySignal").textContent = runtime.operational_memory ? "active" : "missing";
+      document.getElementById("traceSignal").textContent = runtime.decision_trace ? "active" : "missing";
+    }
 
-async function ejecutarAprendizaje() {
-  document.getElementById('resultado-aprendizaje').innerHTML='<div class="loading"><div class="spinner"></div><p>Analizando patrones...</p></div>';
-  try {
-    const r=await fetch('/api/aprender',{method:'POST'}); const data=await r.json();
-    if(!data.success){document.getElementById('resultado-aprendizaje').innerHTML=`<div class="card"><p style="color:#ff6b6b">❌ ${data.error}</p></div>`;return;}
-    const i=data.insights; let html='<div class="card">';
-    if(i.patrones?.length){html+='<div class="seccion-titulo">Patrones detectados</div>'+i.patrones.map(p=>`<div class="insight-item">${p}</div>`).join('');}
-    if(i.insights?.length){html+='<div class="seccion-titulo" style="margin-top:16px">Insights accionables</div>'+i.insights.map(x=>`<div class="insight-item" style="border-color:#FFB800">${x}</div>`).join('');}
-    if(i.ajuste_recomendado){html+=`<div style="margin-top:16px;padding:14px;background:rgba(255,184,0,0.05);border:1px solid rgba(255,184,0,0.2);border-radius:10px"><div style="font-size:11px;color:#FFD700;margin-bottom:6px;text-transform:uppercase;letter-spacing:1px">Ajuste recomendado</div><div style="font-size:13px;color:#e2f8f8">${i.ajuste_recomendado}</div>${i.requiere_aprobacion?'<div style="font-size:11px;color:#facc15;margin-top:6px">⚠️ Requiere tu aprobación</div>':''}</div>`;}
-    html+='</div>'; document.getElementById('resultado-aprendizaje').innerHTML=html;
-  } catch(e){document.getElementById('resultado-aprendizaje').innerHTML=`<div class="card"><p style="color:#ff6b6b">❌ ${e.message}</p></div>`;}
-}
+    document.getElementById("activateButton").addEventListener("click", async () => {
+      const propuesta = document.getElementById("propuesta").value.trim();
+      const contexto = document.getElementById("contexto").value.trim();
+      if (!propuesta) return;
+      document.getElementById("activateResult").textContent = "Evaluating governance...";
+      const data = await jsonFetch("/api/activar", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ propuesta, contexto })
+      });
+      document.getElementById("activateResult").textContent = JSON.stringify({
+        success: data.success,
+        error: data.error,
+        governance: data.governance,
+        decision: data.decision,
+        decision_trace_id: data.decision_trace && data.decision_trace.decision_id
+      }, null, 2);
+    });
 
-async function cargarHistorial() {
-  document.getElementById('lista-historial').innerHTML='<div class="loading"><div class="spinner"></div></div>';
-  try {
-    const r=await fetch('/api/historial'); const data=await r.json();
-    if(!data.historial?.length){document.getElementById('lista-historial').innerHTML='<div class="card"><p style="color:#7ecac8;font-size:13px">Sin historial aún.</p></div>';return;}
-    document.getElementById('lista-historial').innerHTML=data.historial.map(h=>`<div class="historial-item"><div class="hist-fecha">${new Date(h.fecha).toLocaleString('es-ES')}</div><div class="hist-propuesta">${h.propuesta||h.input?.mensaje||''}</div>${h.decision?.decision?`<div class="hist-decision">Decisión: <strong style="color:${h.decision.decision==='aprobado'?'#00FFD1':h.decision.decision==='rechazado'?'#ff6b6b':'#FFD700'}">${h.decision.decision.toUpperCase()}</strong></div>`:''} ${h.decision?.mensaje_final?`<div style="font-size:11px;color:#7ecac8;margin-top:4px;font-style:italic">"${h.decision.mensaje_final}"</div>`:''}</div>`).join('');
-  } catch(e){}
-}
-</script>
+    document.getElementById("resultButton").addEventListener("click", async () => {
+      const data = await jsonFetch("/api/resultado", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          accion: document.getElementById("rAccion").value,
+          resultado: document.getElementById("rResultado").value,
+          ingresos: document.getElementById("rIngresos").value,
+          notas: document.getElementById("rNotas").value
+        })
+      });
+      await loadResults();
+      document.getElementById("rAccion").value = "";
+      document.getElementById("rNotas").value = "";
+      if (!data.success) alert(data.error || "blocked");
+    });
+
+    document.getElementById("learnButton").addEventListener("click", async () => {
+      document.getElementById("learnResult").textContent = "Checking evidence...";
+      const data = await jsonFetch("/api/aprender", { method: "POST" });
+      document.getElementById("learnResult").textContent = JSON.stringify(data, null, 2);
+    });
+
+    async function loadResults() {
+      const data = await jsonFetch("/api/resultados");
+      const list = document.getElementById("resultList");
+      list.innerHTML = (data.registros || []).slice(0, 8).map((item) => `
+        <article class="quiet-item">
+          <strong>${item.accion || "Untitled action"}</strong><br />
+          <small>${item.resultado || "unknown"} · revenue ${item.ingresos || 0} · ${item.fecha || ""}</small>
+        </article>
+      `).join("") || "<div class='quiet-item'>No results registered.</div>";
+    }
+
+    async function loadHistory() {
+      const data = await jsonFetch("/api/historial");
+      const list = document.getElementById("historyList");
+      list.innerHTML = (data.historial || []).slice(0, 8).map((item) => `
+        <article class="quiet-item">
+          <strong>${item.propuesta || "Untitled proposal"}</strong><br />
+          <small>${item.decision && item.decision.decision ? item.decision.decision : "pending"} · ${item.fecha || ""}</small>
+        </article>
+      `).join("") || "<div class='quiet-item'>No history yet.</div>";
+    }
+
+    async function loadTraces() {
+      const data = await jsonFetch("/api/decision-traces");
+      const list = document.getElementById("traceList");
+      list.innerHTML = (data.traces || []).slice(0, 10).map((item) => `
+        <article class="quiet-item">
+          <strong>${item.event}</strong><br />
+          <small>${item.decision_id} · ${item.approval_context} · ${item.timestamp}</small>
+        </article>
+      `).join("") || "<div class='quiet-item'>No traces yet.</div>";
+    }
+
+    loadRuntime().catch(() => {
+      document.getElementById("runtimeStatus").textContent = "runtime unavailable";
+    });
+    loadResults();
+  </script>
 </body>
 </html>

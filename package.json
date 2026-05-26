@@ -1,10 +1,12 @@
 {
   "name": "cerebro",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Cerebro governed operational prototype",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js",
+    "build": "node -e \"require('./server'); console.log('build check ok')\"",
+    "test": "node tests/governance.test.js"
   },
   "keywords": [],
   "author": "",
