@@ -2,5 +2,6 @@
 .env.*
 node_modules/
 data/*.json
+forja-knowledge-core/
 *.pem
 *.key

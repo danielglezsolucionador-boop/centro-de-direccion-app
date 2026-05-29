@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cerebro - Executive Operational System</title>
+  <title>Centro de Direccion - Cerebro Operational System</title>
+  <link rel="icon" href="data:," />
   <style>
     :root {
       color: #f5efe5;
@@ -23,7 +24,7 @@
     * { box-sizing: border-box; }
 
     body {
-      min-width: 320px;
+      min-width: 0;
       margin: 0;
       overflow-x: hidden;
       background:
@@ -86,6 +87,35 @@
       color: rgba(245, 239, 229, 0.72);
       box-shadow: inset 0 0 0 1px var(--line);
       font-size: 0.86rem;
+      overflow-wrap: anywhere;
+      max-width: 100%;
+    }
+
+    .auth-control {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      max-width: min(420px, 100%);
+    }
+
+    .auth-control input {
+      min-width: 0;
+      height: 40px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(245,239,229,0.06);
+      color: var(--ink);
+      padding: 0 13px;
+    }
+
+    .auth-control button {
+      height: 40px;
+      padding: 0 13px;
+      border-radius: 999px;
+      background: rgba(215,173,99,0.16);
+      box-shadow: inset 0 0 0 1px rgba(215,173,99,0.28);
+      color: var(--ink);
+      font-weight: 800;
     }
 
     .hero {
@@ -143,6 +173,7 @@
       box-shadow: inset 0 0 0 1px var(--line);
       color: rgba(245,239,229,0.82);
       font-size: 0.86rem;
+      overflow-wrap: anywhere;
     }
 
     .signal-panel, .panel {
@@ -182,6 +213,8 @@
       display: block;
       margin-top: 8px;
       font-size: 1.5rem;
+      overflow-wrap: anywhere;
+      line-height: 1.08;
     }
 
     .tabs {
@@ -277,14 +310,17 @@
     }
 
     .quiet-item {
+      min-width: 0;
       padding: 15px;
       border-radius: 8px;
       background: rgba(0,0,0,0.22);
       box-shadow: inset 0 0 0 1px rgba(245,239,229,0.08);
+      overflow-wrap: anywhere;
     }
 
     .quiet-item small {
       color: var(--muted);
+      overflow-wrap: anywhere;
     }
 
     .footer {
@@ -302,9 +338,12 @@
     @media (max-width: 520px) {
       .shell { padding: 18px 14px 32px; }
       .topbar { align-items: flex-start; flex-direction: column; }
+      .auth-control { width: 100%; }
+      .auth-control input { flex: 1; }
       h1 { max-width: 315px; font-size: 2.34rem; line-height: 1.05; }
       .command-row span, .tab { width: 100%; text-align: center; }
       .signal-grid { grid-template-columns: 1fr; }
+      .signal strong { font-size: 1.12rem; }
       .panel { padding: 18px; }
     }
   </style>
@@ -313,11 +352,15 @@
   <main class="shell">
     <header class="topbar">
       <div class="brand">
-        <div class="mark">CB</div>
+        <div class="mark">CD</div>
         <div>
-          <strong>Cerebro</strong>
-          <span>Executive Cognitive Operational System</span>
+          <strong>Centro de Direccion</strong>
+          <span>Cerebro Executive Cognitive Operational System</span>
         </div>
+      </div>
+      <div class="auth-control">
+        <input id="authTokenInput" type="password" autocomplete="off" placeholder="Bearer token" />
+        <button id="authSaveButton" type="button">Set</button>
       </div>
       <div class="status-pill" id="runtimeStatus">runtime loading</div>
     </header>
@@ -331,6 +374,7 @@
           <span>CEO override ready</span>
           <span>approval gates active</span>
           <span>direct provider calls isolated</span>
+          <span id="certificationBadge">enterprise readiness checking</span>
         </div>
       </div>
 
@@ -344,7 +388,18 @@
           <div class="signal"><span>Governance</span><strong id="govSignal">active</strong></div>
           <div class="signal"><span>Provider</span><strong id="providerSignal">checking</strong></div>
           <div class="signal"><span>Memory</span><strong id="memorySignal">active</strong></div>
+          <div class="signal"><span>Memory Integrity</span><strong id="memoryIntegritySignal">checking</strong></div>
           <div class="signal"><span>Trace</span><strong id="traceSignal">active</strong></div>
+          <div class="signal"><span>Workflow</span><strong id="workflowSignal">checking</strong></div>
+          <div class="signal"><span>Automation</span><strong id="automationSignal">checking</strong></div>
+          <div class="signal"><span>Degraded Ops</span><strong id="degradedSignal">checking</strong></div>
+          <div class="signal"><span>AI Coordination</span><strong id="aiSignal">checking</strong></div>
+          <div class="signal"><span>Deploy Trust</span><strong id="deploySignal">checking</strong></div>
+          <div class="signal"><span>Operational Trust</span><strong id="trustSignal">checking</strong></div>
+          <div class="signal"><span>Freeze Baseline</span><strong id="freezeSignal">checking</strong></div>
+          <div class="signal"><span>Final Class</span><strong id="finalClassSignal">checking</strong></div>
+          <div class="signal"><span>Auth</span><strong id="authSignal">checking</strong></div>
+          <div class="signal"><span>Certification</span><strong id="certSignal">not ready</strong></div>
         </div>
       </aside>
     </section>
@@ -354,6 +409,11 @@
       <button class="tab" data-tab="resultado">Results</button>
       <button class="tab" data-tab="aprender">Learning</button>
       <button class="tab" data-tab="historial">History</button>
+      <button class="tab" data-tab="workflows">Workflows</button>
+      <button class="tab" data-tab="degraded">Degraded</button>
+      <button class="tab" data-tab="memory">Memory</button>
+      <button class="tab" data-tab="governance">Governance</button>
+      <button class="tab" data-tab="final">Final</button>
       <button class="tab" data-tab="trazas">Trace</button>
     </nav>
 
@@ -409,6 +469,43 @@
       <div class="quiet-list" id="historyList"></div>
     </section>
 
+    <section class="panel" id="panel-workflows">
+      <p class="eyebrow">Workflow integrity</p>
+      <h2>Execution evidence, retry visibility, fallback state.</h2>
+      <div class="quiet-list" id="workflowSummary"></div>
+      <div class="quiet-list" id="workflowList"></div>
+    </section>
+
+    <section class="panel" id="panel-degraded">
+      <p class="eyebrow">Degraded operations</p>
+      <h2>Limited automation state without fake continuity.</h2>
+      <div class="quiet-list" id="degradedSummary"></div>
+      <div class="quiet-list" id="fallbackList"></div>
+    </section>
+
+    <section class="panel" id="panel-memory">
+      <p class="eyebrow">Operational memory</p>
+      <h2>Memory and AI coordination integrity.</h2>
+      <div class="quiet-list" id="memoryIntegritySummary"></div>
+      <div class="quiet-list" id="aiIntegritySummary"></div>
+    </section>
+
+    <section class="panel" id="panel-governance">
+      <p class="eyebrow">Automation governance</p>
+      <h2>Deploy integrity, trust, and freeze baseline.</h2>
+      <div class="quiet-list" id="deployIntegritySummary"></div>
+      <div class="quiet-list" id="operationalTrustSummary"></div>
+      <div class="quiet-list" id="automationGovernanceSummary"></div>
+    </section>
+
+    <section class="panel" id="panel-final">
+      <p class="eyebrow">Final re-audit</p>
+      <h2>Honest automation foundation validation.</h2>
+      <div class="quiet-list" id="finalClassificationSummary"></div>
+      <div class="quiet-list" id="finalBlockersSummary"></div>
+      <div class="quiet-list" id="finalCabinSummary"></div>
+    </section>
+
     <section class="panel" id="panel-trazas">
       <p class="eyebrow">Decision traceability</p>
       <h2>Governance evidence.</h2>
@@ -420,6 +517,32 @@
 
   <script>
     const tabs = document.querySelectorAll(".tab");
+    const authStorageKey = "cerebro_auth_token";
+    const protectedEndpointPatterns = [
+      /^\/api\/activar$/,
+      /^\/api\/resultado$/,
+      /^\/api\/aprender$/,
+      /^\/api\/historial$/,
+      /^\/api\/resultados$/,
+      /^\/api\/decision-traces$/,
+      /^\/api\/operational-memory$/,
+      /^\/workflow\/traces$/,
+      /^\/governance\/audit-snapshot$/,
+      /^\/automation\/degradation\/probe$/,
+      /^\/memory\/degradation\/probe$/,
+      /^\/governance\/deploy\/probe$/,
+    ];
+    const storedAuthToken = sessionStorage.getItem(authStorageKey) || "";
+    document.getElementById("authTokenInput").value = storedAuthToken;
+    document.getElementById("authSaveButton").addEventListener("click", () => {
+      const value = document.getElementById("authTokenInput").value.trim();
+      if (value) sessionStorage.setItem(authStorageKey, value);
+      else sessionStorage.removeItem(authStorageKey);
+      loadRuntime().catch(() => {
+        document.getElementById("runtimeStatus").textContent = "runtime unavailable";
+      });
+    });
+
     tabs.forEach((button) => {
       button.addEventListener("click", () => {
         tabs.forEach((tab) => tab.classList.toggle("active", tab === button));
@@ -427,21 +550,106 @@
         document.getElementById(`panel-${button.dataset.tab}`).classList.add("active");
         if (button.dataset.tab === "historial") loadHistory();
         if (button.dataset.tab === "resultado") loadResults();
+        if (button.dataset.tab === "workflows") loadWorkflows();
+        if (button.dataset.tab === "degraded") loadDegraded();
+        if (button.dataset.tab === "memory") loadMemoryIntegrity();
+        if (button.dataset.tab === "governance") loadGovernanceTrust();
+        if (button.dataset.tab === "final") loadFinalCertification();
         if (button.dataset.tab === "trazas") loadTraces();
       });
     });
 
     async function jsonFetch(url, options) {
-      const response = await fetch(url, options);
-      return response.json();
+      const token = sessionStorage.getItem(authStorageKey);
+      const path = new URL(url, window.location.origin).pathname;
+      const requiresAuth = protectedEndpointPatterns.some((pattern) => pattern.test(path));
+      if (!token && requiresAuth) {
+        return {
+          success: false,
+          http_status: 0,
+          error: "AUTH_REQUIRED",
+          auth_state: "AUTH_REQUIRED",
+          data_state: "AUTH_REQUIRED",
+          message: "Bearer token required before requesting protected Cerebro data.",
+          request_suppressed: true,
+          no_fake_success: true,
+        };
+      }
+      const headers = {
+        ...(options && options.headers ? options.headers : {}),
+        ...(token ? { authorization: `Bearer ${token}` } : {}),
+      };
+      const response = await fetch(url, { ...(options || {}), headers });
+      const data = await response.json().catch(() => ({
+        success: false,
+        error: "INVALID_JSON_RESPONSE",
+        data_state: "DATA_UNAVAILABLE",
+      }));
+      if (!response.ok) {
+        return {
+          success: false,
+          http_status: response.status,
+          error: data.error || "REQUEST_FAILED",
+          auth_state: data.auth_state,
+          data_state: data.data_state || "DATA_UNAVAILABLE",
+          message: data.message || "Request failed.",
+          no_fake_success: true,
+        };
+      }
+      return data;
+    }
+
+    function protectedDataUnavailable(data, label) {
+      if (data && data.success === false && (data.auth_state || data.data_state)) {
+        return `<div class='quiet-item'><strong>${data.auth_state || data.data_state}</strong><br /><small>${label}: ${data.message || data.error || "protected data unavailable"}</small></div>`;
+      }
+      return null;
     }
 
     async function loadRuntime() {
-      const runtime = await jsonFetch("/runtime/status");
+      const [
+        runtime,
+        readiness,
+        continuity,
+        automation,
+        degraded,
+        memoryIntegrity,
+        aiIntegrity,
+        deploy,
+        trust,
+        governance,
+        finalCertification,
+        auth,
+      ] = await Promise.all([
+        jsonFetch("/runtime/status"),
+        jsonFetch("/runtime/enterprise-readiness"),
+        jsonFetch("/runtime/continuity"),
+        jsonFetch("/automation/survivability"),
+        jsonFetch("/automation/degraded-operations"),
+        jsonFetch("/memory/integrity"),
+        jsonFetch("/ai/coordination/integrity"),
+        jsonFetch("/deploy/integrity"),
+        jsonFetch("/operational/trust"),
+        jsonFetch("/governance/automation"),
+        jsonFetch("/certification/automation-foundation"),
+        jsonFetch("/auth/status"),
+      ]);
       document.getElementById("runtimeStatus").textContent = runtime.status;
       document.getElementById("providerSignal").textContent = runtime.provider_ready ? "ready" : "not ready";
       document.getElementById("memorySignal").textContent = runtime.operational_memory ? "active" : "missing";
+      document.getElementById("memoryIntegritySignal").textContent = memoryIntegrity.status || "unknown";
       document.getElementById("traceSignal").textContent = runtime.decision_trace ? "active" : "missing";
+      document.getElementById("workflowSignal").textContent = continuity.workflow_continuity || "unknown";
+      document.getElementById("automationSignal").textContent = automation.status || "unknown";
+      document.getElementById("degradedSignal").textContent = degraded.status || "unknown";
+      document.getElementById("aiSignal").textContent = aiIntegrity.status || continuity.ai_orchestration_continuity || "unknown";
+      document.getElementById("deploySignal").textContent = deploy.classification || "unknown";
+      document.getElementById("trustSignal").textContent = trust.status || "unknown";
+      document.getElementById("freezeSignal").textContent = governance.governance_classification || "unknown";
+      document.getElementById("finalClassSignal").textContent = finalCertification.classification || "unknown";
+      document.getElementById("authSignal").textContent = auth.status || continuity.auth_continuity || "unknown";
+      document.getElementById("certSignal").textContent = readiness.certification.enterprise_ready ? "ready" : "not ready";
+      document.getElementById("certificationBadge").textContent = finalCertification.classification || readiness.certification.classification;
     }
 
     document.getElementById("activateButton").addEventListener("click", async () => {
@@ -489,6 +697,11 @@
     async function loadResults() {
       const data = await jsonFetch("/api/resultados");
       const list = document.getElementById("resultList");
+      const unavailable = protectedDataUnavailable(data, "results");
+      if (unavailable) {
+        list.innerHTML = unavailable;
+        return;
+      }
       list.innerHTML = (data.registros || []).slice(0, 8).map((item) => `
         <article class="quiet-item">
           <strong>${item.accion || "Untitled action"}</strong><br />
@@ -500,6 +713,11 @@
     async function loadHistory() {
       const data = await jsonFetch("/api/historial");
       const list = document.getElementById("historyList");
+      const unavailable = protectedDataUnavailable(data, "history");
+      if (unavailable) {
+        list.innerHTML = unavailable;
+        return;
+      }
       list.innerHTML = (data.historial || []).slice(0, 8).map((item) => `
         <article class="quiet-item">
           <strong>${item.propuesta || "Untitled proposal"}</strong><br />
@@ -511,12 +729,147 @@
     async function loadTraces() {
       const data = await jsonFetch("/api/decision-traces");
       const list = document.getElementById("traceList");
+      const unavailable = protectedDataUnavailable(data, "decision traces");
+      if (unavailable) {
+        list.innerHTML = unavailable;
+        return;
+      }
       list.innerHTML = (data.traces || []).slice(0, 10).map((item) => `
         <article class="quiet-item">
           <strong>${item.event}</strong><br />
           <small>${item.decision_id} · ${item.approval_context} · ${item.timestamp}</small>
         </article>
       `).join("") || "<div class='quiet-item'>No traces yet.</div>";
+    }
+
+    async function loadWorkflows() {
+      const [survivability, traces] = await Promise.all([
+        jsonFetch("/automation/survivability"),
+        jsonFetch("/workflow/traces")
+      ]);
+      document.getElementById("workflowSummary").innerHTML = `
+        <article class="quiet-item">
+          <strong>${survivability.status}</strong><br />
+          <small>retry: ${survivability.retry_intelligence.status} · auto retry: ${survivability.retry_intelligence.auto_retry ? "yes" : "no"} · traceability: ${survivability.degraded_automation_continuity.traceability}</small>
+        </article>
+      `;
+      const list = document.getElementById("workflowList");
+      const unavailable = protectedDataUnavailable(traces, "workflow traces");
+      if (unavailable) {
+        list.innerHTML = unavailable;
+        return;
+      }
+      list.innerHTML = (traces.recent || []).slice(0, 10).map((item) => `
+        <article class="quiet-item">
+          <strong>${item.workflow} · ${item.status}</strong><br />
+          <small>${item.workflow_trace_id} · retry ${item.retry && item.retry.retry_allowed ? "visible" : "not needed"} · fallback ${item.fallback ? item.fallback.mode : "unknown"} · ${item.timestamp}</small>
+        </article>
+      `).join("") || "<div class='quiet-item'>No workflow traces yet.</div>";
+    }
+
+    async function loadDegraded() {
+      const [degraded, fallbacks] = await Promise.all([
+        jsonFetch("/automation/degraded-operations"),
+        jsonFetch("/automation/fallbacks")
+      ]);
+      document.getElementById("degradedSummary").innerHTML = `
+        <article class="quiet-item">
+          <strong>${degraded.status} · ${degraded.severity}</strong><br />
+          <small>${degraded.human_visibility.operator_message}</small><br />
+          <small>AI: ${degraded.operational_continuity.ai_coordination} · Memory: ${degraded.operational_continuity.memory_continuity} · Recovery: ${degraded.operational_continuity.task_recovery_continuity}</small>
+        </article>
+      `;
+      const plan = fallbacks.fallback_execution;
+      document.getElementById("fallbackList").innerHTML = `
+        <article class="quiet-item">
+          <strong>Fallback mode: ${plan.execution_mode}</strong><br />
+          <small>safe: ${plan.safe_actions.join(", ")} · restricted: ${(plan.restricted_actions || []).join(", ") || "none"}</small><br />
+          <small>auto retry: ${plan.retry_policy.auto_retry ? "yes" : "no"} · operator review: ${plan.retry_policy.retry_requires_operator_review ? "required" : "not required"}</small>
+        </article>
+      `;
+    }
+
+    async function loadMemoryIntegrity() {
+      const [memory, ai] = await Promise.all([
+        jsonFetch("/memory/integrity"),
+        jsonFetch("/ai/coordination/integrity")
+      ]);
+      const memoryState = memory.memory_survivability || {};
+      const operational = memory.operational_memory || {};
+      const workflowContinuity = operational.workflow_memory_continuity || {};
+      const contextContinuity = operational.operational_context_continuity || {};
+      document.getElementById("memoryIntegritySummary").innerHTML = `
+        <article class="quiet-item">
+          <strong>${memory.status}</strong><br />
+          <small>freshness: ${memoryState.stale_context_detection ? memoryState.stale_context_detection.state : "unknown"} - fallback: ${memoryState.fallback_mode || "unknown"}</small><br />
+          <small>workflow traces: ${workflowContinuity.workflow_trace_count || 0} - decision traces: ${contextContinuity.decision_trace_count || 0}</small><br />
+          <small>storage: ${memory.storage_model} - durability: ${memory.durability}</small>
+        </article>
+      `;
+      document.getElementById("aiIntegritySummary").innerHTML = `
+        <article class="quiet-item">
+          <strong>${ai.status}</strong><br />
+          <small>delegation: ${ai.task_delegation_continuity.delegation_mode} - agents: ${ai.task_delegation_continuity.registered_agents.length}</small><br />
+          <small>execution: ${ai.ai_execution_coherence.execution_claim} - fake AGI: no</small><br />
+          <small>operator review: ${ai.survivability.recovery_requires_operator_review ? "required when degraded" : "not required now"}</small>
+        </article>
+      `;
+    }
+
+    async function loadGovernanceTrust() {
+      const [deploy, trust, governance] = await Promise.all([
+        jsonFetch("/deploy/integrity"),
+        jsonFetch("/operational/trust"),
+        jsonFetch("/governance/automation")
+      ]);
+      document.getElementById("deployIntegritySummary").innerHTML = `
+        <article class="quiet-item">
+          <strong>${deploy.classification}</strong><br />
+          <small>source/live: ${deploy.source_to_live_continuity.status} - rollback: ${deploy.rollback_continuity.status}</small><br />
+          <small>branch: ${deploy.source.branch} - commit: ${deploy.source.commit} - dirty: ${deploy.source.dirty ? "yes" : "no"}</small><br />
+          <small>fake deploy success: no - deploy execution: none</small>
+        </article>
+      `;
+      document.getElementById("operationalTrustSummary").innerHTML = `
+        <article class="quiet-item">
+          <strong>${trust.status}</strong><br />
+          <small>workflow: ${trust.workflow_trust_validation.status} - orchestration: ${trust.orchestration_integrity_validation.status}</small><br />
+          <small>automation: ${trust.automation_trust_visibility.status} - degraded: ${trust.degraded_automation_awareness.status}</small>
+        </article>
+      `;
+      document.getElementById("automationGovernanceSummary").innerHTML = `
+        <article class="quiet-item">
+          <strong>${governance.status}</strong><br />
+          <small>freeze: ${governance.operational_freeze_baseline.freeze_required ? "required" : "not required"} - ${governance.operational_freeze_baseline.freeze_reason}</small><br />
+          <small>no autonomous deploy: ${governance.operational_freeze_baseline.no_autonomous_deploy ? "yes" : "no"} - governance PASS fake: no</small>
+        </article>
+      `;
+    }
+
+    async function loadFinalCertification() {
+      const certification = await jsonFetch("/certification/automation-foundation");
+      const audit = certification.audit || {};
+      const blockers = audit.blockers || [];
+      document.getElementById("finalClassificationSummary").innerHTML = `
+        <article class="quiet-item">
+          <strong>${certification.classification}</strong><br />
+          <small>operationally closed: ${certification.operationally_closed ? "yes" : "no"} - ${certification.closure_decision.reason}</small><br />
+          <small>fake AGI certification: no - fake enterprise-grade claim: no</small>
+        </article>
+      `;
+      document.getElementById("finalBlockersSummary").innerHTML = `
+        <article class="quiet-item">
+          <strong>Blockers</strong><br />
+          <small>${blockers.length ? blockers.join(", ") : "none"}</small>
+        </article>
+      `;
+      document.getElementById("finalCabinSummary").innerHTML = `
+        <article class="quiet-item">
+          <strong>Cabin integrity</strong><br />
+          <small>Human: ${audit.executive_operational_clarity ? audit.executive_operational_clarity.status : "unknown"} - Technical: ${audit.runtime_operational_integrity ? audit.runtime_operational_integrity.status : "unknown"}</small><br />
+          <small>Heart: evidence-only classification, no autonomous enterprise claim</small>
+        </article>
+      `;
     }
 
     loadRuntime().catch(() => {
