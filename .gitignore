@@ -5,3 +5,5 @@ data/*.json
 forja-knowledge-core/
 *.pem
 *.key
+
+.vercel

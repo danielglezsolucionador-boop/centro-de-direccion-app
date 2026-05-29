@@ -159,10 +159,10 @@ async function request(method, path, body, options = {}) {
   assert.strictEqual(finalValidation.no_fake_enterprise_claims, true);
 
   const auth = await request("GET", "/auth/status");
-  assert.strictEqual(auth.status, "AUTH_REQUIRED");
+  assert.strictEqual(auth.status, "AUTH_CONFIGURED");
   assert.strictEqual(auth.secret_exposed, false);
   assert.strictEqual(auth.claim, "protected_endpoints_require_bearer_token");
-  assert.strictEqual(getAuthContinuitySnapshot().status, "AUTH_REQUIRED");
+  assert.strictEqual(getAuthContinuitySnapshot().status, "AUTH_CONFIGURED");
 
   const unauthenticatedResult = await request("POST", "/api/resultado", {
     accion: "intento sin auth",

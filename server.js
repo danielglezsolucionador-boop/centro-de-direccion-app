@@ -188,10 +188,14 @@ function getConfiguredAuthToken() {
   return String(process.env.CEREBRO_AUTH_TOKEN || "").trim();
 }
 
+function isAuthConfiguredStatus(status) {
+  return status === "AUTH_CONFIGURED";
+}
+
 function getAuthContinuitySnapshot() {
   const configured = Boolean(getConfiguredAuthToken());
   return {
-    status: configured ? "AUTH_REQUIRED" : "AUTH_NOT_CONFIGURED",
+    status: configured ? "AUTH_CONFIGURED" : "AUTH_NOT_CONFIGURED",
     user_auth: configured,
     session_auth: configured,
     token_configured: configured,
@@ -822,7 +826,7 @@ function getAutomationGovernanceSnapshot(overrides = {}) {
     deploy.classification === "FREEZE_REQUIRED"
     || aiIntegrity.status !== "COHERENT_WITH_LIMITATIONS"
     || degraded.status === "DEGRADED_OPERATION"
-    || auth.status !== "AUTH_REQUIRED";
+    || !isAuthConfiguredStatus(auth.status);
 
   return {
     generated_at: new Date().toISOString(),
@@ -933,7 +937,7 @@ function getFinalOperationalReauditSnapshot(overrides = {}) {
       pass: true,
     },
     blockers: [
-      auth.status !== "AUTH_REQUIRED" ? "auth_not_configured_or_invalid" : null,
+      !isAuthConfiguredStatus(auth.status) ? "auth_not_configured_or_invalid" : null,
       !deploy.source_to_live_continuity.verified ? "source_to_live_not_verified" : null,
       deploy.rollback_continuity.status !== "BASIC_GIT_ROLLBACK_READY" ? "rollback_not_verified" : null,
       deploy.source.dirty ? "local_worktree_dirty" : null,
@@ -1262,7 +1266,7 @@ function getDegradedOperationsSnapshot(overrides = {}) {
   if (states.degraded_orchestration_mode) states.degraded_automation_states.push("DEGRADED_ORCHESTRATION");
   if (states.degraded_ai_coordination) states.degraded_automation_states.push("DEGRADED_AI_COORDINATION");
   if (states.degraded_memory_continuity) states.degraded_automation_states.push("DEGRADED_MEMORY_CONTINUITY");
-  if (effective.auth_status !== "AUTH_REQUIRED") states.degraded_automation_states.push("AUTH_BASELINE_MISSING");
+  if (!isAuthConfiguredStatus(effective.auth_status)) states.degraded_automation_states.push("AUTH_BASELINE_MISSING");
 
   const severity =
     states.degraded_memory_continuity ? "HIGH" :
@@ -1334,7 +1338,7 @@ function getRuntimeContinuitySnapshot() {
     },
     limitations: [
       "live deployment continuity must be verified through deploy/integrity evidence",
-      auth.status === "AUTH_REQUIRED"
+      isAuthConfiguredStatus(auth.status)
         ? "auth baseline is active and protected endpoints require bearer token"
         : "CEREBRO_AUTH_TOKEN is not configured; protected endpoints fail closed",
       "memory is local JSON, not durable database-backed storage",
