@@ -1333,8 +1333,10 @@ function getRuntimeContinuitySnapshot() {
       irreversible_actions_require_ceo_approval: true,
     },
     limitations: [
-      "live deployment still needs JSON endpoint validation",
-      "auth is not implemented",
+      "live deployment continuity must be verified through deploy/integrity evidence",
+      auth.status === "AUTH_REQUIRED"
+        ? "auth baseline is active and protected endpoints require bearer token"
+        : "CEREBRO_AUTH_TOKEN is not configured; protected endpoints fail closed",
       "memory is local JSON, not durable database-backed storage",
       "AI orchestration is degraded when provider credentials are missing",
     ],
