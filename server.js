@@ -47,7 +47,7 @@ function boundedProviderMaxTokens(provider, requestedMaxTokens) {
     ? Number(requestedMaxTokens)
     : 800;
   if (provider !== "openrouter") return requested;
-  const openRouterCap = intEnvFirst(60, "CEREBRO_OPENROUTER_MAX_TOKENS", "OPENROUTER_MAX_TOKENS");
+  const openRouterCap = intEnvFirst(40, "CEREBRO_OPENROUTER_MAX_TOKENS", "OPENROUTER_MAX_TOKENS");
   return Math.max(1, Math.min(requested, openRouterCap));
 }
 
