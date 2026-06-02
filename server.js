@@ -49,7 +49,7 @@ const PROVIDER_CONFIG = {
     provider_name: "OpenRouter",
     enabled: Boolean(envFirst("OPENROUTER_API_KEY", "CEREBRO_OPENROUTER_API_KEY", "FORJA_OPENROUTER_API_KEY")),
     credential_env: "OPENROUTER_API_KEY",
-    model: process.env.CEREBRO_OPENROUTER_MODEL || process.env.OPENROUTER_MODEL || "openai/gpt-4o-mini",
+    model: process.env.CEREBRO_OPENROUTER_MODEL || process.env.OPENROUTER_MODEL || process.env.FORJA_OPENROUTER_MODEL || "openai/gpt-4o-mini",
     mode: "official_connector",
     status: Boolean(envFirst("OPENROUTER_API_KEY", "CEREBRO_OPENROUTER_API_KEY", "FORJA_OPENROUTER_API_KEY")) ? "ready" : "missing_credentials",
   },
@@ -212,6 +212,7 @@ function guardarJSON(file, data) {
   const temp = `${file}.tmp`;
   fs.writeFileSync(temp, JSON.stringify(data, null, 2));
   fs.renameSync(temp, file);
+  schedulePersistentFlush(file);
 }
 
 function getDefaultEcosystemMemory() {
@@ -262,19 +263,130 @@ function getDefaultEcosystemMemory() {
 
 function getMemoryBackendSnapshot() {
   const isVercelRuntime = Boolean(process.env.VERCEL);
-  const externalBackend = process.env.CEREBRO_MEMORY_BACKEND || "";
+  const storage = getPersistentStorageConfig();
+  const externalBackend = process.env.CEREBRO_MEMORY_BACKEND || (storage.enabled ? storage.backend : "");
   return {
     backend: externalBackend || "json_atomic_file",
     data_dir: DATA_DIR,
     persistent: !isVercelRuntime || Boolean(externalBackend),
     production_note: isVercelRuntime && !externalBackend
       ? "Vercel runtime JSON is operational but not durable across cold starts; configure external storage for enterprise persistence."
-      : "Memory writes persist in the configured data directory/backend.",
+      : storage.enabled
+        ? "Memory writes are mirrored to Vercel/Upstash KV REST storage and hydrated on runtime invocation."
+        : "Memory writes persist in the configured data directory/backend.",
+    storage_ready: storage.enabled,
+    storage_required_env: storage.required_env,
     files: {
       conversations: path.relative(__dirname, CONVERSATIONS_FILE),
       deliverables: path.relative(__dirname, DELIVERABLES_FILE),
       ecosystem_memory: path.relative(__dirname, ECOSYSTEM_MEMORY_FILE),
     },
+  };
+}
+
+const PERSISTENT_STORAGE_FILES = [
+  MEMORY_FILE,
+  RESULTS_FILE,
+  DECISION_TRACE_FILE,
+  OPERATIONAL_MEMORY_FILE,
+  WORKFLOW_TRACE_FILE,
+  CONVERSATIONS_FILE,
+  DELIVERABLES_FILE,
+  ECOSYSTEM_MEMORY_FILE,
+  LOCAL_AGENT_REGISTRY_FILE,
+  LOCAL_AGENT_TASKS_FILE,
+];
+let persistentHydrated = false;
+let persistentHydratingPromise = null;
+
+function getPersistentStorageConfig() {
+  const backend = process.env.CEREBRO_STORAGE_BACKEND || (envFirst("KV_REST_API_URL", "UPSTASH_REDIS_REST_URL") ? "vercel_kv" : "");
+  const url = envFirst("KV_REST_API_URL", "UPSTASH_REDIS_REST_URL").replace(/\/+$/, "");
+  const token = envFirst("KV_REST_API_TOKEN", "UPSTASH_REDIS_REST_TOKEN");
+  const prefix = process.env.CEREBRO_KV_PREFIX || "cerebro-production";
+  const enabled = backend === "vercel_kv" && Boolean(url && token);
+  return {
+    backend: enabled ? "vercel_kv_rest" : (backend || "json_atomic_file"),
+    enabled,
+    url,
+    token,
+    prefix,
+    required_env: ["CEREBRO_STORAGE_BACKEND=vercel_kv", "KV_REST_API_URL", "KV_REST_API_TOKEN"],
+  };
+}
+
+function persistentStorageKey(file) {
+  const storage = getPersistentStorageConfig();
+  const relative = path.relative(DATA_DIR, file).replace(/\\/g, "/");
+  return `${storage.prefix}:${relative}`;
+}
+
+async function kvCommand(command) {
+  const storage = getPersistentStorageConfig();
+  if (!storage.enabled || typeof fetch !== "function") return null;
+  const response = await fetch(storage.url, {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${storage.token}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify(command),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || data.error) {
+    throw new Error(data.error || `kv_http_${response.status}`);
+  }
+  return data.result;
+}
+
+async function hydratePersistentStorage() {
+  const storage = getPersistentStorageConfig();
+  if (!storage.enabled || persistentHydrated) return { enabled: storage.enabled, hydrated: persistentHydrated };
+  if (persistentHydratingPromise) return persistentHydratingPromise;
+  persistentHydratingPromise = (async () => {
+    for (const file of PERSISTENT_STORAGE_FILES) {
+      const result = await kvCommand(["GET", persistentStorageKey(file)]).catch(() => null);
+      if (!result) continue;
+      try {
+        const parsed = typeof result === "string" ? JSON.parse(result) : result;
+        fs.mkdirSync(path.dirname(file), { recursive: true });
+        fs.writeFileSync(file, JSON.stringify(parsed, null, 2));
+      } catch (_) {
+        // Invalid remote JSON must not break runtime; local fallback remains available.
+      }
+    }
+    persistentHydrated = true;
+    return { enabled: true, hydrated: true };
+  })().finally(() => {
+    persistentHydratingPromise = null;
+  });
+  return persistentHydratingPromise;
+}
+
+function schedulePersistentFlush(file) {
+  const storage = getPersistentStorageConfig();
+  if (!storage.enabled || !PERSISTENT_STORAGE_FILES.includes(file) || typeof fetch !== "function") return;
+  void flushPersistentFile(file).catch(() => {});
+}
+
+async function flushPersistentFile(file) {
+  const storage = getPersistentStorageConfig();
+  if (!storage.enabled || !fs.existsSync(file)) return { enabled: storage.enabled, flushed: false };
+  const raw = fs.readFileSync(file, "utf8");
+  await kvCommand(["SET", persistentStorageKey(file), raw]);
+  return { enabled: true, flushed: true, key: persistentStorageKey(file) };
+}
+
+function getPersistentStorageSnapshot() {
+  const storage = getPersistentStorageConfig();
+  return {
+    backend: storage.backend,
+    enabled: storage.enabled,
+    hydrated: persistentHydrated,
+    prefix: storage.enabled ? storage.prefix : null,
+    file_count: PERSISTENT_STORAGE_FILES.length,
+    required_env: storage.required_env,
+    uses_tmp_only: Boolean(process.env.VERCEL) && !storage.enabled,
   };
 }
 
@@ -2104,8 +2216,8 @@ async function executeProvider({ provider = resolveProviderId(), system, userCon
         headers: {
           authorization: `Bearer ${envFirst("OPENROUTER_API_KEY", "CEREBRO_OPENROUTER_API_KEY", "FORJA_OPENROUTER_API_KEY")}`,
           "content-type": "application/json",
-          "http-referer": process.env.CEREBRO_PUBLIC_URL || "https://cerebro-app-eta.vercel.app",
-          "x-title": "CEREBRO Human Cabin",
+          "http-referer": envFirst("CEREBRO_PUBLIC_URL", "FORJA_PUBLIC_URL") || "https://cerebro-app-eta.vercel.app",
+          "x-title": process.env.CEREBRO_OPENROUTER_TITLE || "CEREBRO Human Cabin",
         },
         timeout: 30000,
       }
@@ -2180,6 +2292,20 @@ Formato JSON: {"propuesta_mejorada":"...","cambios_principales":["cambio 1"]}`,
   return debate;
 }
 
+app.use(async (_req, res, next) => {
+  try {
+    await hydratePersistentStorage();
+    next();
+  } catch (error) {
+    res.status(503).json({
+      success: false,
+      error: "persistent_storage_unavailable",
+      detail: error.message,
+      storage: getPersistentStorageSnapshot(),
+    });
+  }
+});
+
 app.get("/health", (_req, res) => {
   res.json({
     status: "ok",
@@ -2209,6 +2335,7 @@ app.get("/runtime/status", (_req, res) => {
     conversations_persistent: true,
     deliverables_visible: true,
     local_agent: localAgentDashboardSnapshot(),
+    storage: getPersistentStorageSnapshot(),
     memory_backend: getMemoryBackendSnapshot(),
     enterprise_ready: CERTIFICATION_STATUS.enterprise_ready,
     certification: CERTIFICATION_STATUS.classification,
@@ -2216,6 +2343,14 @@ app.get("/runtime/status", (_req, res) => {
     memory_continuity: continuity.memory_continuity,
     auth_continuity: continuity.auth_continuity,
     ai_orchestration_continuity: continuity.ai_orchestration_continuity,
+  });
+});
+
+app.get("/storage/status", (_req, res) => {
+  res.json({
+    success: true,
+    storage: getPersistentStorageSnapshot(),
+    memory_backend: getMemoryBackendSnapshot(),
   });
 });
 

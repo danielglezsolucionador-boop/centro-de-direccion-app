@@ -2,6 +2,8 @@ const assert = require("assert");
 process.env.CEREBRO_AUTH_TOKEN = process.env.CEREBRO_AUTH_TOKEN || "test-auth-token";
 process.env.ANTHROPIC_API_KEY = "";
 process.env.OPENROUTER_API_KEY = "";
+process.env.CEREBRO_OPENROUTER_API_KEY = "";
+process.env.FORJA_OPENROUTER_API_KEY = "";
 process.env.OPENAI_API_KEY = "";
 
 const {
@@ -79,6 +81,13 @@ async function request(method, path, body, options = {}) {
   assert.ok(runtime.workflow_continuity);
   assert.ok(runtime.memory_continuity);
   assert.ok(runtime.ai_orchestration_continuity);
+  assert.ok(runtime.storage);
+  assert.strictEqual(runtime.storage.uses_tmp_only, false);
+
+  const storage = await request("GET", "/storage/status", null, { auth: false });
+  assert.strictEqual(storage.success, true);
+  assert.strictEqual(storage.storage.enabled, false);
+  assert.ok(storage.storage.required_env.includes("KV_REST_API_URL"));
 
   const readiness = await request("GET", "/runtime/enterprise-readiness");
   assert.strictEqual(readiness.app, "cerebro");
