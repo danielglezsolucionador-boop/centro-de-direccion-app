@@ -1,5 +1,6 @@
 const express = require("express");
 const axios = require("axios");
+const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 const { execSync } = require("child_process");
@@ -22,34 +23,44 @@ const CONVERSATIONS_FILE = path.join(DATA_DIR, "conversations.json");
 const DELIVERABLES_FILE = path.join(DATA_DIR, "deliverables.json");
 const ECOSYSTEM_MEMORY_FILE = path.join(DATA_DIR, "ecosystem_memory.json");
 const DELIVERABLES_DIR = path.join(DATA_DIR, "deliverables");
+const LOCAL_AGENT_REGISTRY_FILE = path.join(DATA_DIR, "local_agent_registry.json");
+const LOCAL_AGENT_TASKS_FILE = path.join(DATA_DIR, "local_agent_tasks.json");
+
+function envFirst(...names) {
+  for (const name of names) {
+    const value = String(process.env[name] || "").trim();
+    if (value) return value;
+  }
+  return "";
+}
 
 const PROVIDER_CONFIG = {
   anthropic: {
     provider_id: "anthropic",
     provider_name: "Anthropic",
-    enabled: Boolean(process.env.ANTHROPIC_API_KEY),
+    enabled: Boolean(envFirst("ANTHROPIC_API_KEY", "CEREBRO_ANTHROPIC_API_KEY")),
     credential_env: "ANTHROPIC_API_KEY",
     model: process.env.CEREBRO_ANTHROPIC_MODEL || "claude-3-5-haiku-20241022",
     mode: "configured_connector",
-    status: Boolean(process.env.ANTHROPIC_API_KEY) ? "ready" : "missing_credentials",
+    status: Boolean(envFirst("ANTHROPIC_API_KEY", "CEREBRO_ANTHROPIC_API_KEY")) ? "ready" : "missing_credentials",
   },
   openrouter: {
     provider_id: "openrouter",
     provider_name: "OpenRouter",
-    enabled: Boolean(process.env.OPENROUTER_API_KEY),
+    enabled: Boolean(envFirst("OPENROUTER_API_KEY", "CEREBRO_OPENROUTER_API_KEY", "FORJA_OPENROUTER_API_KEY")),
     credential_env: "OPENROUTER_API_KEY",
-    model: process.env.CEREBRO_OPENROUTER_MODEL || "openai/gpt-4o-mini",
+    model: process.env.CEREBRO_OPENROUTER_MODEL || process.env.OPENROUTER_MODEL || "openai/gpt-4o-mini",
     mode: "official_connector",
-    status: Boolean(process.env.OPENROUTER_API_KEY) ? "ready" : "missing_credentials",
+    status: Boolean(envFirst("OPENROUTER_API_KEY", "CEREBRO_OPENROUTER_API_KEY", "FORJA_OPENROUTER_API_KEY")) ? "ready" : "missing_credentials",
   },
   openai: {
     provider_id: "openai",
     provider_name: "OpenAI",
-    enabled: Boolean(process.env.OPENAI_API_KEY),
+    enabled: Boolean(envFirst("OPENAI_API_KEY", "CEREBRO_OPENAI_API_KEY")),
     credential_env: "OPENAI_API_KEY",
     model: process.env.CEREBRO_OPENAI_MODEL || "gpt-4.1-mini",
     mode: "optional_connector",
-    status: Boolean(process.env.OPENAI_API_KEY) ? "ready" : "missing_credentials",
+    status: Boolean(envFirst("OPENAI_API_KEY", "CEREBRO_OPENAI_API_KEY")) ? "ready" : "missing_credentials",
   },
 };
 
@@ -170,6 +181,8 @@ function ensureDataFiles() {
   ensureJsonFile(CONVERSATIONS_FILE, { sessions: [] });
   ensureJsonFile(DELIVERABLES_FILE, { items: [] });
   ensureJsonFile(ECOSYSTEM_MEMORY_FILE, getDefaultEcosystemMemory());
+  ensureJsonFile(LOCAL_AGENT_REGISTRY_FILE, { agents: [] });
+  ensureJsonFile(LOCAL_AGENT_TASKS_FILE, { tasks: [] });
 }
 
 function migrateIfNeeded(legacyPath, targetPath, fallback) {
@@ -369,6 +382,7 @@ function buildExecutiveSnapshot() {
     ai: getAICoordinationSnapshot(),
     memory: getMemoryContinuitySnapshot(),
     memory_backend: getMemoryBackendSnapshot(),
+    local_agent: localAgentDashboardSnapshot(),
   };
 }
 
@@ -484,6 +498,337 @@ function recordStrategicConversationMemory({ message, reply, governance, convers
   });
   memoria.historial = memoria.historial.slice(0, 100);
   guardarJSON(MEMORY_FILE, memoria);
+}
+
+const DEFAULT_LOCAL_AGENT_CAPABILITIES = [
+  "repo_read",
+  "repo_status",
+  "repo_diff",
+  "repo_branch_create",
+  "repo_edit_controlled",
+  "repo_commit_prepare",
+  "memory_read",
+  "reports_read",
+  "reports_generate",
+  "deliveries_read",
+  "deliveries_generate",
+  "logs_read",
+  "build_run",
+  "tests_run",
+  "audit_run",
+  "backup_create",
+  "snapshot_create",
+  "rollback_plan",
+  "artifact_upload",
+];
+const LOCAL_AGENT_MUTATING_TYPES = new Set(["report_generation", "controlled_edit", "commit_prepare", "commit_execute", "push", "deploy", "rollback"]);
+const LOCAL_AGENT_CRITICAL_TYPES = new Set(["commit_execute", "push", "deploy", "rollback"]);
+const LOCAL_AGENT_SECRET_MARKERS = [
+  "api_key",
+  "apikey",
+  "authorization",
+  "bearer ",
+  "credential",
+  "openrouter_api_key",
+  "password",
+  "private_key",
+  "secret",
+  "sk-",
+  "token",
+];
+
+function readLocalAgentRegistry() {
+  const store = leerJSON(LOCAL_AGENT_REGISTRY_FILE, { agents: [] });
+  return Array.isArray(store.agents) ? store : { agents: [] };
+}
+
+function saveLocalAgentRegistry(store) {
+  store.agents = (store.agents || []).slice(-100);
+  guardarJSON(LOCAL_AGENT_REGISTRY_FILE, store);
+}
+
+function readLocalAgentTasks() {
+  const store = leerJSON(LOCAL_AGENT_TASKS_FILE, { tasks: [] });
+  return Array.isArray(store.tasks) ? store : { tasks: [] };
+}
+
+function saveLocalAgentTasks(store) {
+  store.tasks = (store.tasks || []).slice(-300);
+  guardarJSON(LOCAL_AGENT_TASKS_FILE, store);
+}
+
+function hashAgentToken(token) {
+  return crypto.createHash("sha256").update(String(token || "")).digest("hex");
+}
+
+function publicAgentRecord(agent) {
+  const copy = { ...agent };
+  delete copy.token_hash;
+  return copy;
+}
+
+function localAgentTaskType(instruction) {
+  const text = normalizeText(instruction);
+  if (text.includes("deploy") || text.includes("desplieg")) return "deploy";
+  if (text.includes("push")) return "push";
+  if (text.includes("rollback") || text.includes("revert")) return "rollback";
+  if (text.includes("commit") && /(ejecut|crear|hacer)/.test(text)) return "commit_execute";
+  if (text.includes("commit")) return "commit_prepare";
+  if (/(implementar|editar|modificar|corregir|fix|cambiar codigo|codigo)/.test(text)) return "controlled_edit";
+  if (text.includes("build") || text.includes("compilar")) return "build";
+  if (text.includes("test") || text.includes("prueba")) return "test";
+  if (text.includes("auditar") || text.includes("auditoria") || text.includes("diagnost")) return "audit";
+  if (text.includes("reporte") || text.includes("report") || text.includes("inventario") || text.includes(".md") || text.includes("guarda") || text.includes("guardar")) return "report_generation";
+  if (text.includes("leer") || text.includes("listar")) return "read";
+  return "diagnosis";
+}
+
+function localAgentTaskPolicy(instruction) {
+  const taskType = localAgentTaskType(instruction);
+  const mutating = LOCAL_AGENT_MUTATING_TYPES.has(taskType);
+  const critical = LOCAL_AGENT_CRITICAL_TYPES.has(taskType);
+  const capabilityMap = {
+    read: ["repo_read", "reports_read", "deliveries_read"],
+    diagnosis: ["repo_status", "repo_diff", "logs_read"],
+    audit: ["repo_status", "repo_diff", "audit_run", "reports_generate"],
+    build: ["repo_read", "build_run", "logs_read"],
+    test: ["repo_read", "tests_run", "logs_read"],
+    report_generation: ["reports_generate", "backup_create", "rollback_plan"],
+    controlled_edit: ["repo_edit_controlled", "repo_branch_create", "backup_create", "rollback_plan"],
+    commit_prepare: ["repo_commit_prepare", "backup_create", "rollback_plan"],
+    commit_execute: ["repo_commit_prepare", "backup_create", "rollback_plan"],
+    push: ["repo_commit_prepare", "backup_create", "rollback_plan"],
+    deploy: ["repo_status", "build_run", "tests_run", "backup_create", "rollback_plan"],
+    rollback: ["backup_create", "rollback_plan"],
+  };
+  const base = ["snapshot_create", "memory_read", "artifact_upload"];
+  const capabilities = Array.from(new Set([...base, ...(capabilityMap[taskType] || [])])).sort();
+  const riskLevel = critical ? "critical" : ["controlled_edit", "commit_prepare", "report_generation"].includes(taskType) ? "high" : ["build", "test", "audit", "diagnosis"].includes(taskType) ? "medium" : "low";
+  const allowedCommands = ["git status", "git diff", "rg", "npm run build", "npm test"];
+  if (["controlled_edit", "commit_prepare"].includes(taskType)) allowedCommands.push("git checkout -b", "git add", "git commit --dry-run");
+  if (critical) allowedCommands.push("requires_critical_human_approval");
+  return {
+    task_type: taskType,
+    risk_level: riskLevel,
+    capabilities_required: capabilities,
+    policy: {
+      requires_snapshot: true,
+      requires_backup: mutating,
+      requires_branch: ["controlled_edit", "commit_prepare", "commit_execute"].includes(taskType),
+      requires_human_approval: ["controlled_edit", "commit_prepare", "report_generation"].includes(taskType) && mutating,
+      requires_critical_approval: critical,
+      requires_rollback_plan: mutating,
+      secrets_allowed: false,
+      push_automatic: false,
+      deploy_automatic: false,
+      allowed_commands: allowedCommands,
+    },
+  };
+}
+
+function containsSecretPayload(value) {
+  if (value === null || value === undefined) return false;
+  if (Array.isArray(value)) return value.some((item) => containsSecretPayload(item));
+  if (typeof value === "object") {
+    return Object.entries(value).some(([key, nested]) => {
+      const keyText = String(key).toLowerCase();
+      if (["secrets_scanned", "secrets_redacted", "excluded"].includes(keyText)) return false;
+      if (["secrets_found", "secrets_exposed"].includes(keyText)) return nested === true;
+      if (LOCAL_AGENT_SECRET_MARKERS.some((marker) => keyText.includes(marker)) && ![false, null, "", "redacted"].includes(nested)) return true;
+      return containsSecretPayload(nested);
+    });
+  }
+  const text = String(value).toLowerCase();
+  return LOCAL_AGENT_SECRET_MARKERS.some((marker) => marker !== "sk-" && text.includes(marker))
+    || /(?<![a-z0-9])sk-[a-z0-9_-]{16,}/i.test(String(value));
+}
+
+function rejectSecretPayload(payload) {
+  if (containsSecretPayload(payload)) {
+    const error = new Error("payload_contains_secret");
+    error.statusCode = 409;
+    throw error;
+  }
+}
+
+function localAgentMemoryContext() {
+  const snapshot = buildExecutiveSnapshot();
+  return {
+    connected: snapshot.memory.status === "READY",
+    production: snapshot.production,
+    registered_apps: snapshot.apps.map((app) => app.name),
+    active_apps: snapshot.apps.filter((app) => /active|production|documented/i.test(app.status)).map((app) => app.name),
+    priorities: snapshot.priorities,
+    blockers: snapshot.blockers,
+    construction: snapshot.projects,
+  };
+}
+
+function localAgentRepositoryContext(task) {
+  const target = task.target || {};
+  return {
+    repo_ids: target.repo_ids || ["cerebro"],
+    paths: target.paths || [],
+    protected_branches: ["main"],
+    allowed_operations: task.capabilities_required || [],
+  };
+}
+
+function appendLocalAgentEvent(task, eventType, payload = {}, risk = "low", idempotencyKey = null) {
+  task.history = Array.isArray(task.history) ? task.history : [];
+  if (idempotencyKey && task.history.some((event) => event.idempotency_key === idempotencyKey)) return;
+  task.history.push({
+    event_id: `event-${crypto.randomUUID()}`,
+    task_id: task.task_id,
+    event_type: eventType,
+    timestamp: new Date().toISOString(),
+    actor: "local_agent",
+    risk,
+    payload,
+    idempotency_key: idempotencyKey,
+  });
+}
+
+function createLocalAgentTaskRecord(payload) {
+  const classification = localAgentTaskPolicy(payload.instruction || "");
+  const status = classification.policy.requires_critical_approval
+    ? "awaiting_critical_approval"
+    : classification.policy.requires_human_approval
+      ? "awaiting_human_approval"
+      : "queued";
+  const task = {
+    task_id: `task-${crypto.randomUUID()}`,
+    title: payload.title || limitText(String(payload.instruction || "CEREBRO Local Agent task").replace(/\s+/g, " "), 120),
+    instruction: payload.instruction,
+    source: payload.source || "human_cabin",
+    requested_by: payload.requested_by || "ceo",
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+    status,
+    priority: payload.priority || "normal",
+    risk_level: classification.risk_level,
+    task_type: classification.task_type,
+    capabilities_required: classification.capabilities_required,
+    target: payload.target || { workspace_id: "ecosystem", repo_ids: ["cerebro"], paths: [] },
+    desired_output: payload.desired_output || null,
+    policy: classification.policy,
+    assigned_agent_id: null,
+    lease: null,
+    approvals: [],
+    history: [],
+    snapshots: [],
+    backups: [],
+    rollback: null,
+    command_logs: [],
+    artifacts: [],
+    result: null,
+    memory_context: localAgentMemoryContext(),
+    repository_context: null,
+  };
+  task.repository_context = localAgentRepositoryContext(task);
+  appendLocalAgentEvent(task, "task.created", { status, task_type: task.task_type }, task.risk_level);
+  const store = readLocalAgentTasks();
+  store.tasks.push(task);
+  saveLocalAgentTasks(store);
+  recordOperationalMemory({ event: "local_agent_task_created", summary: task.title, task_id: task.task_id, risk_level: task.risk_level });
+  return task;
+}
+
+function findLocalAgentTask(taskId) {
+  const store = readLocalAgentTasks();
+  const task = store.tasks.find((item) => item.task_id === taskId);
+  return { store, task };
+}
+
+function findLocalAgent(agentId) {
+  const store = readLocalAgentRegistry();
+  const agent = store.agents.find((item) => item.agent_id === agentId);
+  return { store, agent };
+}
+
+function authenticateLocalAgent(req) {
+  const agentId = String(req.headers["x-cerebro-agent-id"] || req.headers["x-forja-agent-id"] || "").trim();
+  const authorization = String(req.headers.authorization || "");
+  if (!agentId) {
+    const error = new Error("missing_agent_id");
+    error.statusCode = 401;
+    throw error;
+  }
+  if (!authorization.toLowerCase().startsWith("bearer ")) {
+    const error = new Error("missing_agent_token");
+    error.statusCode = 401;
+    throw error;
+  }
+  const token = authorization.slice(7).trim();
+  const { agent } = findLocalAgent(agentId);
+  if (!agent) {
+    const error = new Error("agent_not_registered");
+    error.statusCode = 401;
+    throw error;
+  }
+  if (agent.status === "revoked") {
+    const error = new Error("agent_revoked");
+    error.statusCode = 403;
+    throw error;
+  }
+  if (agent.token_hash !== hashAgentToken(token)) {
+    const error = new Error("invalid_agent_token");
+    error.statusCode = 401;
+    throw error;
+  }
+  return agent;
+}
+
+function localAgentAllowedForTask(task, agent, pollPayload = {}) {
+  const agentCapabilities = new Set([...(agent.capability_profile || []), ...((pollPayload && pollPayload.capabilities) || [])]);
+  const missing = (task.capabilities_required || []).filter((capability) => !agentCapabilities.has(capability));
+  const allowedRepos = new Set(agent.allowed_repositories || []);
+  const requestedRepos = new Set(((task.target || {}).repo_ids) || []);
+  const repoBlocked = requestedRepos.size > 0 && allowedRepos.size > 0 && Array.from(requestedRepos).some((repo) => !allowedRepos.has(repo));
+  if (missing.length || repoBlocked) {
+    return { allowed: false, reason: missing.length ? "missing_capabilities" : "repository_not_allowed", missing_capabilities: missing, repo_blocked: repoBlocked };
+  }
+  return { allowed: true, reason: "policy_allowed" };
+}
+
+function localAgentDashboardSnapshot() {
+  const agents = readLocalAgentRegistry().agents.map(publicAgentRecord);
+  const tasks = readLocalAgentTasks().tasks;
+  const latestResults = tasks.filter((task) => task.result).slice(-10);
+  const deliveries = latestResults.map((task) => {
+    const visible = [...(task.artifacts || [])].reverse().find((artifact) => artifact.visible_in_human_cabin);
+    const report = (task.result || {}).report || {};
+    return {
+      name: (visible || {}).name || report.name || task.title,
+      path: (visible || {}).local_path || (task.target || {}).delivery_path || report.local_path || report.name || task.task_id,
+      status: String(task.status || "completed").toUpperCase(),
+      task_id: task.task_id,
+    };
+  });
+  return {
+    agents: {
+      total: agents.length,
+      online: agents.filter((agent) => agent.status === "active").length,
+      offline: agents.filter((agent) => !["active", "registered"].includes(agent.status)).length,
+      registered: agents.filter((agent) => agent.status === "registered").length,
+    },
+    tasks: {
+      total: tasks.length,
+      queued: tasks.filter((task) => task.status === "queued").length,
+      running: tasks.filter((task) => ["leased", "snapshotting", "backing_up", "preparing_workspace", "running"].includes(task.status)).length,
+      awaiting_approval: tasks.filter((task) => ["awaiting_human_approval", "awaiting_critical_approval"].includes(task.status)).length,
+      completed: tasks.filter((task) => task.status === "completed").length,
+      blocked: tasks.filter((task) => task.status === "blocked").length,
+    },
+    latest_results: latestResults,
+    critical_approvals: tasks.filter((task) => task.status === "awaiting_critical_approval").slice(-10),
+    deliveries: deliveries.slice(-10),
+    rollbacks_available: tasks.filter((task) => task.rollback).slice(-10),
+    recent_activity: tasks.slice(-20).map((task) => {
+      const latest = (task.history || []).slice(-1)[0] || {};
+      return { time: latest.timestamp || task.updated_at, event: latest.event_type || "task.created", app: "local_agent", result: task.title, task_id: task.task_id };
+    }).reverse().slice(0, 12),
+  };
 }
 
 function normalizeText(value) {
@@ -1733,7 +2078,7 @@ async function executeProvider({ provider = resolveProviderId(), system, userCon
       },
       {
         headers: {
-          "x-api-key": process.env.ANTHROPIC_API_KEY,
+          "x-api-key": envFirst("ANTHROPIC_API_KEY", "CEREBRO_ANTHROPIC_API_KEY"),
           "anthropic-version": "2023-06-01",
           "content-type": "application/json",
         },
@@ -1757,7 +2102,7 @@ async function executeProvider({ provider = resolveProviderId(), system, userCon
       },
       {
         headers: {
-          authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          authorization: `Bearer ${envFirst("OPENROUTER_API_KEY", "CEREBRO_OPENROUTER_API_KEY", "FORJA_OPENROUTER_API_KEY")}`,
           "content-type": "application/json",
           "http-referer": process.env.CEREBRO_PUBLIC_URL || "https://cerebro-app-eta.vercel.app",
           "x-title": "CEREBRO Human Cabin",
@@ -1782,7 +2127,7 @@ async function executeProvider({ provider = resolveProviderId(), system, userCon
       },
       {
         headers: {
-          authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+          authorization: `Bearer ${envFirst("OPENAI_API_KEY", "CEREBRO_OPENAI_API_KEY")}`,
           "content-type": "application/json",
         },
         timeout: 30000,
@@ -1863,6 +2208,7 @@ app.get("/runtime/status", (_req, res) => {
     human_cabin: "operational",
     conversations_persistent: true,
     deliverables_visible: true,
+    local_agent: localAgentDashboardSnapshot(),
     memory_backend: getMemoryBackendSnapshot(),
     enterprise_ready: CERTIFICATION_STATUS.enterprise_ready,
     certification: CERTIFICATION_STATUS.classification,
@@ -2062,6 +2408,321 @@ app.get("/api/deliverables", (_req, res) => {
   });
 });
 
+function sendLocalAgentError(res, error) {
+  const status = Number(error.statusCode) || 500;
+  return res.status(status).json({ success: false, detail: error.message || "local_agent_error" });
+}
+
+app.post("/local-agent/agents", (req, res) => {
+  try {
+    const payload = req.body || {};
+    const agentId = `agent-${crypto.randomUUID()}`;
+    const token = `cerebro_agent_v1_${agentId}.${crypto.randomBytes(32).toString("base64url")}`;
+    const agent = {
+      agent_id: agentId,
+      agent_name: payload.agent_name || "CEREBRO Local Agent",
+      machine_label: payload.machine_label || "local-pc",
+      owner: payload.owner || "ceo",
+      status: "registered",
+      last_seen_at: null,
+      token_hash: hashAgentToken(token),
+      capability_profile: payload.capability_profile || DEFAULT_LOCAL_AGENT_CAPABILITIES,
+      allowed_repositories: payload.allowed_repositories || ["cerebro"],
+      allowed_workspaces: payload.allowed_workspaces || ["ecosystem"],
+      policy_profile: payload.policy_profile || "default",
+      created_at: new Date().toISOString(),
+      revoked_at: null,
+    };
+    const store = readLocalAgentRegistry();
+    store.agents.push(agent);
+    saveLocalAgentRegistry(store);
+    recordOperationalMemory({ event: "local_agent_registered", summary: agent.machine_label, agent_id: agentId });
+    res.json({ ...publicAgentRecord(agent), agent_token: token });
+  } catch (error) {
+    return sendLocalAgentError(res, error);
+  }
+});
+
+app.get("/local-agent/agents", (_req, res) => {
+  res.json(readLocalAgentRegistry().agents.map(publicAgentRecord));
+});
+
+app.post("/local-agent/tasks", (req, res) => {
+  try {
+    if (!req.body || !req.body.instruction) {
+      return res.status(400).json({ success: false, detail: "instruction_required" });
+    }
+    rejectSecretPayload(req.body);
+    res.json(createLocalAgentTaskRecord(req.body));
+  } catch (error) {
+    return sendLocalAgentError(res, error);
+  }
+});
+
+app.get("/local-agent/tasks", (req, res) => {
+  const limit = Math.max(1, Math.min(200, Number(req.query.limit) || 100));
+  res.json(readLocalAgentTasks().tasks.slice(-limit));
+});
+
+app.get("/local-agent/tasks/:taskId", (req, res) => {
+  const { task } = findLocalAgentTask(req.params.taskId);
+  if (!task) return res.status(404).json({ success: false, detail: "local_agent_task_not_found" });
+  return res.json(task);
+});
+
+app.post("/local-agent/tasks/:taskId/approve", (req, res) => {
+  try {
+    const { store, task } = findLocalAgentTask(req.params.taskId);
+    if (!task) return res.status(404).json({ success: false, detail: "local_agent_task_not_found" });
+    if (task.policy.requires_critical_approval || task.status === "awaiting_critical_approval") {
+      return res.status(409).json({ success: false, detail: "critical_approval_required" });
+    }
+    if (!["awaiting_human_approval", "awaiting_critical_approval"].includes(task.status)) {
+      return res.status(409).json({ success: false, detail: "task_not_waiting_for_approval" });
+    }
+    const approval = {
+      approval_id: `approval-${crypto.randomUUID()}`,
+      task_id: task.task_id,
+      type: "human",
+      approved_by: req.body.approved_by || "ceo",
+      reason: req.body.reason || "",
+      action: req.body.action || task.task_type,
+      exact_target: req.body.exact_target || {},
+      approved_at: new Date().toISOString(),
+    };
+    task.approvals.push(approval);
+    task.status = "queued";
+    task.updated_at = new Date().toISOString();
+    appendLocalAgentEvent(task, "task.human_approval.granted", approval, task.risk_level);
+    saveLocalAgentTasks(store);
+    res.json(task);
+  } catch (error) {
+    return sendLocalAgentError(res, error);
+  }
+});
+
+app.post("/local-agent/tasks/:taskId/critical-approval", (req, res) => {
+  try {
+    const { store, task } = findLocalAgentTask(req.params.taskId);
+    if (!task) return res.status(404).json({ success: false, detail: "local_agent_task_not_found" });
+    if (!task.policy.requires_critical_approval) return res.status(409).json({ success: false, detail: "critical_approval_not_required" });
+    const approval = {
+      approval_id: `approval-${crypto.randomUUID()}`,
+      task_id: task.task_id,
+      type: "critical",
+      approved_by: req.body.approved_by || "ceo",
+      reason: req.body.reason || "",
+      action: req.body.action || task.task_type,
+      exact_target: req.body.exact_target || {},
+      approved_at: new Date().toISOString(),
+    };
+    task.approvals.push(approval);
+    task.status = "queued";
+    task.updated_at = new Date().toISOString();
+    appendLocalAgentEvent(task, "task.critical_approval.granted", approval, task.risk_level);
+    saveLocalAgentTasks(store);
+    res.json(task);
+  } catch (error) {
+    return sendLocalAgentError(res, error);
+  }
+});
+
+app.get("/local-agent/dashboard", (_req, res) => {
+  res.json(localAgentDashboardSnapshot());
+});
+
+app.post("/agent/v1/heartbeat", (req, res) => {
+  try {
+    const agent = authenticateLocalAgent(req);
+    const { store } = findLocalAgent(agent.agent_id);
+    const record = store.agents.find((item) => item.agent_id === agent.agent_id);
+    record.status = "active";
+    record.last_seen_at = new Date().toISOString();
+    saveLocalAgentRegistry(store);
+    res.json(publicAgentRecord(record));
+  } catch (error) {
+    return sendLocalAgentError(res, error);
+  }
+});
+
+app.post("/agent/v1/tasks/poll", (req, res) => {
+  try {
+    const agent = authenticateLocalAgent(req);
+    const tasks = [];
+    const maxTasks = Math.max(1, Math.min(5, Number(req.body.max_tasks) || 1));
+    for (const task of [...readLocalAgentTasks().tasks].reverse()) {
+      if (task.status !== "queued") continue;
+      const decision = localAgentAllowedForTask(task, agent, req.body || {});
+      if (decision.allowed) tasks.push(task);
+      if (tasks.length >= maxTasks) break;
+    }
+    res.json({ agent_id: agent.agent_id, tasks });
+  } catch (error) {
+    return sendLocalAgentError(res, error);
+  }
+});
+
+app.post("/agent/v1/tasks/:taskId/lease", (req, res) => {
+  try {
+    const agent = authenticateLocalAgent(req);
+    const { store, task } = findLocalAgentTask(req.params.taskId);
+    if (!task) return res.status(404).json({ success: false, detail: "local_agent_task_not_found" });
+    if (task.status !== "queued") return res.status(409).json({ success: false, detail: "task_not_queued" });
+    const decision = localAgentAllowedForTask(task, agent);
+    if (!decision.allowed) return res.status(403).json({ success: false, detail: decision.reason, decision });
+    const now = Date.now();
+    const lease = {
+      lease_id: `lease-${crypto.randomUUID()}`,
+      task_id: task.task_id,
+      agent_id: agent.agent_id,
+      leased_at: new Date(now).toISOString(),
+      expires_at: new Date(now + 10 * 60 * 1000).toISOString(),
+      heartbeat_at: new Date(now).toISOString(),
+      renewal_count: 0,
+    };
+    task.status = "leased";
+    task.assigned_agent_id = agent.agent_id;
+    task.lease = lease;
+    task.updated_at = new Date().toISOString();
+    appendLocalAgentEvent(task, "task.leased", lease, task.risk_level);
+    saveLocalAgentTasks(store);
+    res.json({ task, ...lease });
+  } catch (error) {
+    return sendLocalAgentError(res, error);
+  }
+});
+
+app.post("/agent/v1/tasks/:taskId/heartbeat", (req, res) => {
+  try {
+    const agent = authenticateLocalAgent(req);
+    const { store, task } = findLocalAgentTask(req.params.taskId);
+    if (!task) return res.status(404).json({ success: false, detail: "local_agent_task_not_found" });
+    if (task.assigned_agent_id !== agent.agent_id) return res.status(403).json({ success: false, detail: "task_not_assigned_to_agent" });
+    task.lease = task.lease || {};
+    task.lease.heartbeat_at = new Date().toISOString();
+    task.lease.renewal_count = Number(task.lease.renewal_count || 0) + 1;
+    task.updated_at = new Date().toISOString();
+    appendLocalAgentEvent(task, "task.heartbeat", { heartbeat_at: task.lease.heartbeat_at }, "low");
+    saveLocalAgentTasks(store);
+    res.json(task);
+  } catch (error) {
+    return sendLocalAgentError(res, error);
+  }
+});
+
+function mutateAssignedLocalAgentTask(req, res, mutator) {
+  try {
+    const agent = authenticateLocalAgent(req);
+    rejectSecretPayload(req.body || {});
+    const { store, task } = findLocalAgentTask(req.params.taskId);
+    if (!task) return res.status(404).json({ success: false, detail: "local_agent_task_not_found" });
+    if (task.assigned_agent_id !== agent.agent_id) return res.status(403).json({ success: false, detail: "task_not_assigned_to_agent" });
+    mutator(task, agent);
+    task.updated_at = new Date().toISOString();
+    saveLocalAgentTasks(store);
+    return res.json(task);
+  } catch (error) {
+    return sendLocalAgentError(res, error);
+  }
+}
+
+app.post("/agent/v1/tasks/:taskId/events", (req, res) => mutateAssignedLocalAgentTask(req, res, (task) => {
+  const event = req.body || {};
+  appendLocalAgentEvent(task, event.event_type || "task.event", event.payload || {}, event.risk || "low", event.idempotency_key || null);
+}));
+
+app.post("/agent/v1/tasks/:taskId/snapshot", (req, res) => mutateAssignedLocalAgentTask(req, res, (task) => {
+  const snapshot = { snapshot_id: `snapshot-${crypto.randomUUID()}`, created_at: new Date().toISOString(), ...(req.body.snapshot || req.body || {}) };
+  task.snapshots.push(snapshot);
+  task.status = task.policy.requires_backup ? "backing_up" : "running";
+  appendLocalAgentEvent(task, "task.snapshot.created", { snapshot_id: snapshot.snapshot_id }, "low");
+}));
+
+app.post("/agent/v1/tasks/:taskId/backup", (req, res) => mutateAssignedLocalAgentTask(req, res, (task) => {
+  if (!task.policy.requires_backup) {
+    const error = new Error("backup_not_required");
+    error.statusCode = 409;
+    throw error;
+  }
+  const backup = { backup_id: `backup-${crypto.randomUUID()}`, created_at: new Date().toISOString(), ...(req.body.backup || req.body || {}) };
+  if (backup.validated !== true) {
+    const error = new Error("backup_not_validated");
+    error.statusCode = 409;
+    throw error;
+  }
+  if (backup.secrets_found) {
+    const error = new Error("backup_contains_secret");
+    error.statusCode = 409;
+    throw error;
+  }
+  task.backups.push(backup);
+  task.status = "preparing_workspace";
+  appendLocalAgentEvent(task, "task.backup.created", { backup_id: backup.backup_id }, task.risk_level);
+}));
+
+app.post("/agent/v1/tasks/:taskId/rollback-record", (req, res) => mutateAssignedLocalAgentTask(req, res, (task) => {
+  const rollback = { rollback_id: `rollback-${crypto.randomUUID()}`, created_at: new Date().toISOString(), ...(req.body.rollback || req.body || {}) };
+  task.rollback = rollback;
+  appendLocalAgentEvent(task, "task.rollback.registered", { rollback_id: rollback.rollback_id }, task.risk_level);
+}));
+
+app.post("/agent/v1/tasks/:taskId/logs", (req, res) => mutateAssignedLocalAgentTask(req, res, (task) => {
+  const commandLog = { command_log_id: `cmdlog-${crypto.randomUUID()}`, created_at: new Date().toISOString(), ...(req.body.command_log || req.body || {}) };
+  task.command_logs.push(commandLog);
+  task.status = "running";
+  appendLocalAgentEvent(task, "task.execution.log", { command: commandLog.command_sanitized }, task.risk_level);
+}));
+
+app.post("/agent/v1/tasks/:taskId/artifacts", (req, res) => mutateAssignedLocalAgentTask(req, res, (task) => {
+  const artifact = { artifact_id: `artifact-${crypto.randomUUID()}`, created_at: new Date().toISOString(), ...(req.body.artifact || req.body || {}) };
+  if (artifact.secrets_found) {
+    const error = new Error("artifact_contains_secret");
+    error.statusCode = 409;
+    throw error;
+  }
+  task.artifacts.push(artifact);
+  appendLocalAgentEvent(task, "task.artifact.uploaded", { name: artifact.name }, task.risk_level);
+}));
+
+app.post("/agent/v1/tasks/:taskId/results", (req, res) => mutateAssignedLocalAgentTask(req, res, (task) => {
+  const result = req.body.result || req.body || {};
+  if (!task.snapshots.length) {
+    const error = new Error("snapshot_required_before_result");
+    error.statusCode = 409;
+    throw error;
+  }
+  if (task.policy.requires_backup && !task.backups.length) {
+    const error = new Error("backup_required_before_result");
+    error.statusCode = 409;
+    throw error;
+  }
+  if (task.policy.requires_rollback_plan && !task.rollback) {
+    const error = new Error("rollback_required_before_result");
+    error.statusCode = 409;
+    throw error;
+  }
+  if (result.secrets_exposed || result.secrets_found) {
+    const error = new Error("result_contains_secret");
+    error.statusCode = 409;
+    throw error;
+  }
+  task.result = {
+    result_id: `result-${crypto.randomUUID()}`,
+    created_at: new Date().toISOString(),
+    secrets_exposed: false,
+    report: {
+      name: `${task.task_id}_RESULT_SUMMARY.md`,
+      kind: "local_agent_result",
+      summary: result.summary || result.human_cabin_summary || "Local Agent task result recorded.",
+      visible_in_human_cabin: true,
+    },
+    ...result,
+  };
+  task.status = ["completed", "failed", "blocked", "cancelled", "rolled_back"].includes(result.status) ? result.status : "completed";
+  appendLocalAgentEvent(task, "task.result.uploaded", { result_id: task.result.result_id, status: task.status }, task.risk_level);
+  if (task.status === "completed") appendLocalAgentEvent(task, "task.completed", { result_id: task.result.result_id }, task.risk_level);
+}));
+
 app.post("/api/chat", async (req, res) => {
   const { message, session_id: requestedSessionId, context } = req.body || {};
   if (!message || typeof message !== "string") {
@@ -2081,6 +2742,46 @@ app.post("/api/chat", async (req, res) => {
     actor: "CEO",
   });
   const deliverableRequest = detectDeliverableRequest(message);
+  let localAgentTask = null;
+  if (deliverableRequest && governance.status !== "blocked") {
+    localAgentTask = createLocalAgentTaskRecord({
+      instruction: `Generar ${deliverableRequest.filename} usando memoria real de CEREBRO y dejarlo visible en Human Cabin. Solicitud original: ${message}`,
+      title: `Generar ${deliverableRequest.filename}`,
+      requested_by: "ceo",
+      source: "human_cabin_chat",
+      priority: "high",
+      target: {
+        workspace_id: "ecosystem",
+        repo_ids: ["cerebro"],
+        paths: ["data", deliverableRequest.filename],
+        delivery_owner: "CEO",
+        delivery_app: "CEREBRO",
+        delivery_path: path.join(DELIVERABLES_DIR, deliverableRequest.filename),
+      },
+      desired_output: deliverableRequest.filename,
+    });
+    if (localAgentTask.status === "awaiting_human_approval" && !localAgentTask.policy.requires_critical_approval) {
+      const approvalState = findLocalAgentTask(localAgentTask.task_id);
+      if (approvalState.task) {
+        const approval = {
+          approval_id: `approval-${crypto.randomUUID()}`,
+          task_id: approvalState.task.task_id,
+          type: "human",
+          approved_by: "ceo",
+          reason: "Aprobacion humana emitida desde Human Cabin para generar el reporte solicitado.",
+          action: "report_generation",
+          exact_target: { filename: deliverableRequest.filename, owner: "CEO" },
+          approved_at: new Date().toISOString(),
+        };
+        approvalState.task.approvals.push(approval);
+        approvalState.task.status = "queued";
+        approvalState.task.updated_at = new Date().toISOString();
+        appendLocalAgentEvent(approvalState.task, "task.human_approval.granted", approval, approvalState.task.risk_level);
+        saveLocalAgentTasks(approvalState.store);
+        localAgentTask = approvalState.task;
+      }
+    }
+  }
   appendConversationMessage(session, "user", message, { governance_status: governance.status });
 
   let provider = getAICoordinationSnapshot();
@@ -2128,6 +2829,7 @@ app.post("/api/chat", async (req, res) => {
     provider_status: provider.status,
     provider_error: providerError,
     deliverable_id: deliverable ? deliverable.id : null,
+    local_agent_task_id: localAgentTask ? localAgentTask.task_id : null,
   });
   saveConversationStore(store);
 
@@ -2139,6 +2841,7 @@ app.post("/api/chat", async (req, res) => {
       ecosystem_effect: "human_cabin_memory_updated",
       protected_state: "secrets_preserved",
       change_reference: deliverable ? deliverable.filename : "conversation_memory",
+      local_agent_task_id: localAgentTask ? localAgentTask.task_id : null,
     },
     decision: {
       decision: "respondido",
@@ -2155,6 +2858,7 @@ app.post("/api/chat", async (req, res) => {
     decision_trace_id: trace.decision_id,
     conversation_id: session.session_id,
     deliverable_id: deliverable ? deliverable.id : null,
+    local_agent_task_id: localAgentTask ? localAgentTask.task_id : null,
   });
   recordStrategicConversationMemory({
     message,
@@ -2183,6 +2887,7 @@ app.post("/api/chat", async (req, res) => {
     conversation_persisted: true,
     memory_persisted: true,
     deliverable,
+    local_agent_task: localAgentTask,
     governance,
     decision_trace: trace,
     workflow_trace: workflowTrace,

@@ -742,10 +742,13 @@
       const apps = (snapshot.apps || []).slice(0, 5).map((app) => app.name).join(", ");
       const blockers = (snapshot.blockers || []).length;
       const counts = snapshot.counts || {};
+      const localAgent = snapshot.local_agent || {};
+      const agentCounts = localAgent.agents || {};
+      const taskCounts = localAgent.tasks || {};
       target.innerHTML = `
         <article class="quiet-item">
           <strong>${escapeHtml(apps || "Sin apps registradas")}</strong><br />
-          <small>decisiones ${counts.decisions || 0} · conversaciones ${counts.conversations || 0} · entregables ${counts.deliverables || 0} · bloqueos ${blockers}</small>
+          <small>decisiones ${counts.decisions || 0} · conversaciones ${counts.conversations || 0} · entregables ${counts.deliverables || 0} · tareas ${taskCounts.total || 0} · agentes ${agentCounts.total || 0} · bloqueos ${blockers}</small>
         </article>
       `;
     }

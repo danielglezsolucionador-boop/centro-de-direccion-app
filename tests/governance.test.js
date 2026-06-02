@@ -39,6 +39,7 @@ async function request(method, path, body, options = {}) {
       headers: {
         ...(body ? { "content-type": "application/json" } : {}),
         ...(auth ? { authorization: `Bearer ${auth}` } : {}),
+        ...(options.headers || {}),
       },
       body: body ? JSON.stringify(body) : undefined,
     });
@@ -117,6 +118,76 @@ async function request(method, path, body, options = {}) {
   const deliverables = await request("GET", "/api/deliverables", null, { auth: false });
   assert.strictEqual(deliverables.success, true);
   assert.ok(deliverables.deliverables.some((item) => item.filename === "ECOSYSTEM_APPS_REPORT.md"));
+
+  const agent = await request("POST", "/local-agent/agents", {
+    agent_name: "CEREBRO Test Agent",
+    machine_label: "test-pc",
+    allowed_repositories: ["cerebro"],
+  }, { auth: false });
+  assert.ok(agent.agent_id);
+  assert.ok(agent.agent_token);
+  assert.strictEqual(agent.token_hash, undefined);
+
+  const agentHeaders = {
+    "x-cerebro-agent-id": agent.agent_id,
+    authorization: `Bearer ${agent.agent_token}`,
+  };
+  const heartbeat = await request("POST", "/agent/v1/heartbeat", {}, { auth: false, headers: agentHeaders });
+  assert.strictEqual(heartbeat.status, "active");
+
+  const localTask = await request("POST", "/local-agent/tasks", {
+    instruction: "Genera un inventario de aplicaciones y guárdalo como CEREBRO_AGENT_REPORT.md",
+    title: "Generar CEREBRO_AGENT_REPORT.md",
+    target: { workspace_id: "ecosystem", repo_ids: ["cerebro"], paths: ["data"] },
+    desired_output: "CEREBRO_AGENT_REPORT.md",
+  }, { auth: false });
+  assert.strictEqual(localTask.task_type, "report_generation");
+  assert.strictEqual(localTask.policy.requires_backup, true);
+
+  const approvedTask = await request("POST", `/local-agent/tasks/${localTask.task_id}/approve`, {
+    approved_by: "ceo",
+    reason: "test approval",
+  }, { auth: false });
+  assert.strictEqual(approvedTask.status, "queued");
+
+  const polled = await request("POST", "/agent/v1/tasks/poll", { max_tasks: 1 }, { auth: false, headers: agentHeaders });
+  assert.ok(polled.tasks.some((item) => item.task_id === localTask.task_id));
+
+  const leased = await request("POST", `/agent/v1/tasks/${localTask.task_id}/lease`, {}, { auth: false, headers: agentHeaders });
+  assert.strictEqual(leased.task.status, "leased");
+
+  const snapshotted = await request("POST", `/agent/v1/tasks/${localTask.task_id}/snapshot`, {
+    snapshot: { git_status: "clean", files_scanned: 3 },
+  }, { auth: false, headers: agentHeaders });
+  assert.ok(snapshotted.snapshots.length >= 1);
+
+  const backedUp = await request("POST", `/agent/v1/tasks/${localTask.task_id}/backup`, {
+    backup: { path: "D:\\ECOSYSTEM\\BACKUPS\\test.zip", validated: true, secrets_found: false },
+  }, { auth: false, headers: agentHeaders });
+  assert.ok(backedUp.backups.length >= 1);
+
+  const rollback = await request("POST", `/agent/v1/tasks/${localTask.task_id}/rollback-record`, {
+    rollback: { plan: "restore backup", reversible: true },
+  }, { auth: false, headers: agentHeaders });
+  assert.ok(rollback.rollback);
+
+  const artifact = await request("POST", `/agent/v1/tasks/${localTask.task_id}/artifacts`, {
+    artifact: { name: "CEREBRO_AGENT_REPORT.md", local_path: "data/deliverables/CEREBRO_AGENT_REPORT.md", visible_in_human_cabin: true, secrets_found: false },
+  }, { auth: false, headers: agentHeaders });
+  assert.ok(artifact.artifacts.some((item) => item.visible_in_human_cabin));
+
+  const completedTask = await request("POST", `/agent/v1/tasks/${localTask.task_id}/results`, {
+    result: { status: "completed", summary: "test report generated", secrets_exposed: false },
+  }, { auth: false, headers: agentHeaders });
+  assert.strictEqual(completedTask.status, "completed");
+  assert.ok(completedTask.result);
+
+  const localAgentDashboard = await request("GET", "/local-agent/dashboard", null, { auth: false });
+  assert.ok(localAgentDashboard.agents.total >= 1);
+  assert.ok(localAgentDashboard.tasks.completed >= 1);
+
+  const humanCabinAfterAgent = await request("GET", "/api/human-cabin/state", null, { auth: false });
+  assert.ok(humanCabinAfterAgent.snapshot.local_agent.tasks.total >= 1);
 
   const snapshot = getEnterpriseReadinessSnapshot();
   assert.strictEqual(snapshot.certification.strategic_authority_ready, false);
