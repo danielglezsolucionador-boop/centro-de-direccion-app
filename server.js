@@ -18,6 +18,10 @@ const RESULTS_FILE = path.join(DATA_DIR, "resultados.json");
 const DECISION_TRACE_FILE = path.join(DATA_DIR, "decision_traces.json");
 const OPERATIONAL_MEMORY_FILE = path.join(DATA_DIR, "operational_memory.json");
 const WORKFLOW_TRACE_FILE = path.join(DATA_DIR, "workflow_traces.json");
+const CONVERSATIONS_FILE = path.join(DATA_DIR, "conversations.json");
+const DELIVERABLES_FILE = path.join(DATA_DIR, "deliverables.json");
+const ECOSYSTEM_MEMORY_FILE = path.join(DATA_DIR, "ecosystem_memory.json");
+const DELIVERABLES_DIR = path.join(DATA_DIR, "deliverables");
 
 const PROVIDER_CONFIG = {
   anthropic: {
@@ -25,9 +29,27 @@ const PROVIDER_CONFIG = {
     provider_name: "Anthropic",
     enabled: Boolean(process.env.ANTHROPIC_API_KEY),
     credential_env: "ANTHROPIC_API_KEY",
-    model: process.env.CEREBRO_ANTHROPIC_MODEL || "claude-haiku-4-5-20251001",
+    model: process.env.CEREBRO_ANTHROPIC_MODEL || "claude-3-5-haiku-20241022",
     mode: "configured_connector",
     status: Boolean(process.env.ANTHROPIC_API_KEY) ? "ready" : "missing_credentials",
+  },
+  openrouter: {
+    provider_id: "openrouter",
+    provider_name: "OpenRouter",
+    enabled: Boolean(process.env.OPENROUTER_API_KEY),
+    credential_env: "OPENROUTER_API_KEY",
+    model: process.env.CEREBRO_OPENROUTER_MODEL || "openai/gpt-4o-mini",
+    mode: "official_connector",
+    status: Boolean(process.env.OPENROUTER_API_KEY) ? "ready" : "missing_credentials",
+  },
+  openai: {
+    provider_id: "openai",
+    provider_name: "OpenAI",
+    enabled: Boolean(process.env.OPENAI_API_KEY),
+    credential_env: "OPENAI_API_KEY",
+    model: process.env.CEREBRO_OPENAI_MODEL || "gpt-4.1-mini",
+    mode: "optional_connector",
+    status: Boolean(process.env.OPENAI_API_KEY) ? "ready" : "missing_credentials",
   },
 };
 
@@ -43,9 +65,9 @@ const ENTERPRISE_CAPABILITIES = {
     missing: ["event bus", "database-backed memory", "multi-provider routing", "auth"],
   },
   human_cabin: {
-    status: "partial",
-    evidence: ["quiet executive UI", "action/result/history loops"],
-    missing: ["live crisis mode", "adaptive cognitive UX", "mobile command validation"],
+    status: "operational_partial",
+    evidence: ["quiet executive UI", "natural chat", "action/result/history loops", "visible deliverables"],
+    missing: ["signed approvals", "database-backed cross-device memory"],
   },
   governance: {
     status: "active_partial",
@@ -139,11 +161,15 @@ FORMATO:
 
 function ensureDataFiles() {
   fs.mkdirSync(DATA_DIR, { recursive: true });
+  fs.mkdirSync(DELIVERABLES_DIR, { recursive: true });
   migrateIfNeeded(LEGACY_MEMORY_FILE, MEMORY_FILE, { historial: [], patrones: [], insights: [] });
   migrateIfNeeded(LEGACY_RESULTS_FILE, RESULTS_FILE, { registros: [] });
   ensureJsonFile(DECISION_TRACE_FILE, { traces: [] });
   ensureJsonFile(OPERATIONAL_MEMORY_FILE, { events: [] });
   ensureJsonFile(WORKFLOW_TRACE_FILE, { workflows: [] });
+  ensureJsonFile(CONVERSATIONS_FILE, { sessions: [] });
+  ensureJsonFile(DELIVERABLES_FILE, { items: [] });
+  ensureJsonFile(ECOSYSTEM_MEMORY_FILE, getDefaultEcosystemMemory());
 }
 
 function migrateIfNeeded(legacyPath, targetPath, fallback) {
@@ -173,6 +199,291 @@ function guardarJSON(file, data) {
   const temp = `${file}.tmp`;
   fs.writeFileSync(temp, JSON.stringify(data, null, 2));
   fs.renameSync(temp, file);
+}
+
+function getDefaultEcosystemMemory() {
+  return {
+    updated_at: new Date().toISOString(),
+    source: "cerebro_integrated_operational_memory",
+    production: {
+      official_platform: "vercel",
+      official_url: "https://cerebro-app-eta.vercel.app/",
+      repository: "centro-de-direccion-app",
+      obsolete_surfaces: [
+        "https://cerebro-app.onrender.com/",
+        "https://cerebro-backend.onrender.com/",
+        "https://cerebro.vercel.app/",
+      ],
+    },
+    apps: [
+      { name: "FORJA", status: "production_operational", role: "construccion y coordinacion tecnica" },
+      { name: "CEREBRO", status: "active_upgrade", role: "direccion ejecutiva del ecosistema" },
+      { name: "DCFT", status: "staging_blocked_render_blueprint", role: "doctor contable financiero tributario" },
+      { name: "CENTINELA", status: "documented", role: "riesgo, vigilancia y continuidad" },
+      { name: "PLUMA", status: "documented", role: "contenido y analisis escrito" },
+      { name: "MARKETING", status: "documented", role: "crecimiento y posicionamiento" },
+      { name: "LENTE", status: "documented", role: "vision y auditoria visual" },
+      { name: "WEB_FACTORY", status: "documented", role: "produccion web" },
+    ],
+    projects: [
+      "Consolidar CEREBRO como cabina ejecutiva conversacional.",
+      "Mantener FORJA como referencia operativa de produccion.",
+      "Completar DCFT C.2.1 cuando Render Blueprint este sincronizado.",
+    ],
+    priorities: [
+      "Human Cabin protagonista y mobile responsive.",
+      "Chat natural en espanol con memoria y entregables.",
+      "Produccion unica y estable sin superficies obsoletas.",
+      "Trazabilidad de decisiones, bloqueos y resultados.",
+    ],
+    blockers: [
+      "Render de CEREBRO no es la produccion vigente.",
+      "Memoria productiva Vercel requiere almacenamiento externo para durabilidad multi-instancia.",
+      "DCFT staging depende de creacion manual de Blueprint en Render.",
+    ],
+    approvals: [
+      "Aprobacion humana requerida para cambios irreversibles, deploys criticos, secrets y migraciones.",
+    ],
+  };
+}
+
+function getMemoryBackendSnapshot() {
+  const isVercelRuntime = Boolean(process.env.VERCEL);
+  const externalBackend = process.env.CEREBRO_MEMORY_BACKEND || "";
+  return {
+    backend: externalBackend || "json_atomic_file",
+    data_dir: DATA_DIR,
+    persistent: !isVercelRuntime || Boolean(externalBackend),
+    production_note: isVercelRuntime && !externalBackend
+      ? "Vercel runtime JSON is operational but not durable across cold starts; configure external storage for enterprise persistence."
+      : "Memory writes persist in the configured data directory/backend.",
+    files: {
+      conversations: path.relative(__dirname, CONVERSATIONS_FILE),
+      deliverables: path.relative(__dirname, DELIVERABLES_FILE),
+      ecosystem_memory: path.relative(__dirname, ECOSYSTEM_MEMORY_FILE),
+    },
+  };
+}
+
+function limitText(value, max = 1200) {
+  const text = String(value || "");
+  return text.length > max ? `${text.slice(0, max - 3)}...` : text;
+}
+
+function readConversationStore() {
+  const store = leerJSON(CONVERSATIONS_FILE, { sessions: [] });
+  return Array.isArray(store.sessions) ? store : { sessions: [] };
+}
+
+function saveConversationStore(store) {
+  store.sessions = (store.sessions || []).slice(0, 100);
+  guardarJSON(CONVERSATIONS_FILE, store);
+}
+
+function getOrCreateConversation(sessionId) {
+  const store = readConversationStore();
+  const safeId = String(sessionId || "").replace(/[^a-zA-Z0-9_-]/g, "").slice(0, 80)
+    || `cerebro_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+  let session = store.sessions.find((item) => item.session_id === safeId);
+  if (!session) {
+    session = {
+      session_id: safeId,
+      title: "Conversacion con CEREBRO",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      messages: [],
+    };
+    store.sessions.unshift(session);
+  }
+  return { store, session };
+}
+
+function appendConversationMessage(session, role, content, meta = {}) {
+  session.messages.push({
+    role,
+    content: limitText(content, 6000),
+    timestamp: new Date().toISOString(),
+    ...meta,
+  });
+  session.messages = session.messages.slice(-80);
+  session.updated_at = new Date().toISOString();
+  if (role === "user" && session.title === "Conversacion con CEREBRO") {
+    session.title = limitText(content, 80);
+  }
+}
+
+function getRecentDeliverables(limit = 12) {
+  const store = leerJSON(DELIVERABLES_FILE, { items: [] });
+  return Array.isArray(store.items) ? store.items.slice(0, limit) : [];
+}
+
+function sanitizeFilename(value) {
+  const base = String(value || "CEREBRO_DELIVERABLE.md")
+    .replace(/[^a-zA-Z0-9_.-]/g, "_")
+    .replace(/_+/g, "_")
+    .replace(/^_+|_+$/g, "")
+    .slice(0, 80);
+  return base.toLowerCase().endsWith(".md") ? base : `${base || "CEREBRO_DELIVERABLE"}.md`;
+}
+
+function detectDeliverableRequest(message) {
+  const text = normalizeText(message);
+  const asksForDeliverable = /(genera|crear|crea|guarda|guardar|reporte|inventario|entregable|documento|\.md)/.test(text);
+  if (!asksForDeliverable) return null;
+  const filenameMatch = String(message).match(/([A-Za-z0-9_.-]+\.md)/i);
+  return {
+    filename: sanitizeFilename(filenameMatch ? filenameMatch[1] : `CEREBRO_ENTREGABLE_${new Date().toISOString().slice(0, 10)}.md`),
+    requested: true,
+  };
+}
+
+function buildExecutiveSnapshot() {
+  const memoria = leerJSON(MEMORY_FILE, { historial: [], patrones: [], insights: [] });
+  const resultados = leerJSON(RESULTS_FILE, { registros: [] });
+  const traces = leerJSON(DECISION_TRACE_FILE, { traces: [] });
+  const operational = leerJSON(OPERATIONAL_MEMORY_FILE, { events: [] });
+  const workflows = leerJSON(WORKFLOW_TRACE_FILE, { workflows: [] });
+  const ecosystem = leerJSON(ECOSYSTEM_MEMORY_FILE, getDefaultEcosystemMemory());
+  const conversations = readConversationStore();
+  return {
+    generated_at: new Date().toISOString(),
+    production: ecosystem.production,
+    apps: ecosystem.apps || [],
+    projects: ecosystem.projects || [],
+    priorities: ecosystem.priorities || [],
+    blockers: ecosystem.blockers || [],
+    approvals: ecosystem.approvals || [],
+    counts: {
+      decisions: memoria.historial.length,
+      results: resultados.registros.length,
+      decision_traces: traces.traces.length,
+      operational_events: operational.events.length,
+      workflow_traces: workflows.workflows.length,
+      conversations: conversations.sessions.length,
+      deliverables: getRecentDeliverables(1000).length,
+    },
+    recent_decisions: memoria.historial.slice(0, 5),
+    recent_results: resultados.registros.slice(0, 5),
+    recent_events: operational.events.slice(0, 5),
+    recent_deliverables: getRecentDeliverables(8),
+    ai: getAICoordinationSnapshot(),
+    memory: getMemoryContinuitySnapshot(),
+    memory_backend: getMemoryBackendSnapshot(),
+  };
+}
+
+function fallbackChatReply(message, snapshot, governance) {
+  const text = normalizeText(message);
+  if (governance && governance.status === "blocked") {
+    return `CEO, no ejecuto eso. La peticion esta bloqueada por gobierno: ${governance.reason}. Puedo ayudarte a reformularla de forma segura.`;
+  }
+  if (text.includes("aplicaciones") || text.includes("apps")) {
+    const apps = snapshot.apps.map((app) => `- ${app.name}: ${app.status} (${app.role})`).join("\n");
+    return `CEO, estas son las aplicaciones registradas en mi memoria operativa:\n\n${apps || "No tengo aplicaciones registradas."}`;
+  }
+  if (text.includes("bloqueo")) {
+    return `CEO, bloqueos actuales verificados:\n\n${(snapshot.blockers || []).map((item) => `- ${item}`).join("\n") || "- No tengo bloqueos registrados."}`;
+  }
+  if (text.includes("prioridad") || text.includes("prioridades")) {
+    return `CEO, prioridades actuales:\n\n${(snapshot.priorities || []).map((item) => `- ${item}`).join("\n") || "- No tengo prioridades registradas."}`;
+  }
+  if (text.includes("construyendo") || text.includes("ecosistema") || text.includes("proyectos")) {
+    return `CEO, estamos construyendo un ecosistema IA operativo con FORJA como referencia productiva y CEREBRO como cabina ejecutiva. Proyectos activos:\n\n${(snapshot.projects || []).map((item) => `- ${item}`).join("\n")}`;
+  }
+  return "CEO, estoy operativo. Puedo ordenar prioridades, explicar el estado del ecosistema, registrar decisiones, detectar bloqueos y generar entregables visibles desde la Human Cabin.";
+}
+
+function buildChatSystemPrompt(snapshot) {
+  return `Eres CEREBRO, director ejecutivo operacional del ecosistema IA de Daniel.
+Respondes siempre en espanol natural, claro, directo y ejecutivo.
+No inventes estado. Usa solo la memoria operativa recibida.
+Si falta evidencia, dilo con precision.
+No reveles secrets, tokens, variables de entorno ni datos sensibles.
+No declares una tarea terminada si no hay evidencia.
+Cuando el CEO pida un entregable, confirma el entregable generado y resume su contenido.
+
+MEMORIA OPERATIVA:
+${limitText(JSON.stringify(snapshot, null, 2), 10000)}`;
+}
+
+function buildDeliverableContent({ filename, message, reply, snapshot }) {
+  return `# ${filename.replace(/\.md$/i, "").replace(/_/g, " ")}
+
+Generado por: CEREBRO Human Cabin
+Fecha: ${new Date().toISOString()}
+
+## Solicitud
+
+${message}
+
+## Respuesta ejecutiva
+
+${reply}
+
+## Estado del ecosistema usado
+
+- Produccion oficial: ${snapshot.production && snapshot.production.official_url ? snapshot.production.official_url : "no registrada"}
+- Aplicaciones registradas: ${snapshot.apps.map((app) => app.name).join(", ") || "ninguna"}
+- Prioridades: ${(snapshot.priorities || []).join(" | ") || "ninguna"}
+- Bloqueos: ${(snapshot.blockers || []).join(" | ") || "ninguno"}
+
+## Evidencia de memoria
+
+- Decisiones: ${snapshot.counts.decisions}
+- Resultados: ${snapshot.counts.results}
+- Trazas de decision: ${snapshot.counts.decision_traces}
+- Eventos operativos: ${snapshot.counts.operational_events}
+- Conversaciones: ${snapshot.counts.conversations}
+- Entregables: ${snapshot.counts.deliverables}
+`;
+}
+
+function createDeliverable({ filename, message, reply, snapshot, conversationId }) {
+  const safeFilename = sanitizeFilename(filename);
+  const content = buildDeliverableContent({ filename: safeFilename, message, reply, snapshot });
+  fs.mkdirSync(DELIVERABLES_DIR, { recursive: true });
+  const filePath = path.join(DELIVERABLES_DIR, safeFilename);
+  fs.writeFileSync(filePath, content);
+  const item = {
+    id: `del_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+    filename: safeFilename,
+    title: safeFilename.replace(/\.md$/i, "").replace(/_/g, " "),
+    status: "generated",
+    created_at: new Date().toISOString(),
+    source: "human_cabin_chat",
+    conversation_id: conversationId,
+    path: path.relative(__dirname, filePath),
+    preview: limitText(content, 420),
+  };
+  const store = leerJSON(DELIVERABLES_FILE, { items: [] });
+  store.items = Array.isArray(store.items) ? store.items : [];
+  store.items.unshift(item);
+  store.items = store.items.slice(0, 200);
+  guardarJSON(DELIVERABLES_FILE, store);
+  return item;
+}
+
+function recordStrategicConversationMemory({ message, reply, governance, conversationId, deliverable }) {
+  const memoria = leerJSON(MEMORY_FILE, { historial: [], patrones: [], insights: [] });
+  memoria.historial.unshift({
+    fecha: new Date().toISOString(),
+    tipo: "human_cabin_conversation",
+    propuesta: limitText(message, 500),
+    decision: {
+      decision: "respondido",
+      razon: governance ? governance.reason : "chat ejecutivo",
+      prioridades: [],
+      descartado: [],
+      plazo: "inmediato",
+      mensaje_final: limitText(reply, 700),
+    },
+    governance,
+    conversation_id: conversationId,
+    deliverable_id: deliverable ? deliverable.id : null,
+    resultado_registrado: Boolean(deliverable),
+  });
+  memoria.historial = memoria.historial.slice(0, 100);
+  guardarJSON(MEMORY_FILE, memoria);
 }
 
 function normalizeText(value) {
@@ -424,11 +735,15 @@ function getMemoryContinuitySnapshot() {
     decision_trace: inspectJsonFile(DECISION_TRACE_FILE, "traces"),
     operational_memory: inspectJsonFile(OPERATIONAL_MEMORY_FILE, "events"),
     workflow_trace: inspectJsonFile(WORKFLOW_TRACE_FILE, "workflows"),
+    conversations: inspectJsonFile(CONVERSATIONS_FILE, "sessions"),
+    deliverables: inspectJsonFile(DELIVERABLES_FILE, "items"),
+    ecosystem_memory: inspectJsonFile(ECOSYSTEM_MEMORY_FILE, null),
   };
   const allReady = Object.values(files).every((file) => file.state === "ready" && file.writable_directory);
   return {
     status: allReady ? "READY" : "DEGRADED",
     persistence: "local_json_atomic_write",
+    memory_backend: getMemoryBackendSnapshot(),
     retention_policy: "bounded_500_trace_memory_100_results_50_decisions",
     silent_failure_policy: "invalid_or_missing_memory_is_reported_as_degraded",
     files,
@@ -516,7 +831,9 @@ function getOperationalMemoryIntegritySnapshot(overrides = {}) {
     || operationalUnlinked > 0
     || !Array.isArray(strategicMemory.patrones)
     || !Array.isArray(strategicMemory.insights);
-  const emptyMemory = workflows.length + decisionTraces.length + operationalEvents.length + results.length + strategicHistory.length === 0;
+  const conversationCount = getArrayStore(CONVERSATIONS_FILE, "sessions").length;
+  const deliverableCount = getArrayStore(DELIVERABLES_FILE, "items").length;
+  const emptyMemory = workflows.length + decisionTraces.length + operationalEvents.length + results.length + strategicHistory.length + conversationCount + deliverableCount === 0;
 
   const status =
     degraded ? "DEGRADED_MEMORY" :
@@ -530,8 +847,8 @@ function getOperationalMemoryIntegritySnapshot(overrides = {}) {
     status,
     simulation: Boolean(overrides.simulation),
     evidence_source: overrides.simulation ? "explicit_validation_probe" : "local_json_memory_and_trace_files",
-    storage_model: "local_json_atomic_write",
-    durability: "local_only_not_database_backed",
+    storage_model: getMemoryBackendSnapshot().backend,
+    durability: getMemoryBackendSnapshot().persistent ? "persistent_configured_backend" : "runtime_json_not_multi_instance_durable",
     operational_memory: {
       workflow_memory_continuity: {
         status: memory.files.workflow_trace.state === "ready" ? "READY" : "DEGRADED",
@@ -543,6 +860,8 @@ function getOperationalMemoryIntegritySnapshot(overrides = {}) {
         status: memory.files.decision_trace.state === "ready" && memory.files.operational_memory.state === "ready" ? "READY" : "DEGRADED",
         decision_trace_count: decisionTraces.length,
         operational_memory_event_count: operationalEvents.length,
+        conversation_count: conversationCount,
+        deliverable_count: deliverableCount,
         operational_events_linked_to_decisions: operationalLinked,
         operational_events_unlinked_to_decisions: operationalUnlinked,
       },
@@ -1101,13 +1420,25 @@ function getWorkflowTraceSnapshot() {
   };
 }
 
+function resolveProviderId(requestedProvider = process.env.CEREBRO_DEFAULT_PROVIDER || "openrouter") {
+  const requested = PROVIDER_CONFIG[requestedProvider] ? requestedProvider : "anthropic";
+  if (PROVIDER_CONFIG[requested] && PROVIDER_CONFIG[requested].enabled) return requested;
+  if (process.env.CEREBRO_PROVIDER_ALLOW_FALLBACK === "true") {
+    return Object.keys(PROVIDER_CONFIG).find((providerId) => PROVIDER_CONFIG[providerId].enabled) || requested;
+  }
+  return requested;
+}
+
 function getAICoordinationSnapshot() {
-  const defaultProvider = process.env.CEREBRO_DEFAULT_PROVIDER || "anthropic";
+  const requestedProvider = process.env.CEREBRO_DEFAULT_PROVIDER || "openrouter";
+  const defaultProvider = resolveProviderId(requestedProvider);
   const provider = PROVIDER_CONFIG[defaultProvider] || null;
   const providerReady = Boolean(provider && provider.enabled);
   return {
     status: providerReady ? "READY" : "DEGRADED_PROVIDER_MISSING",
+    requested_provider: requestedProvider,
     default_provider: defaultProvider,
+    provider_failover: defaultProvider !== requestedProvider,
     provider_registered: Boolean(provider),
     provider_ready: providerReady,
     provider_status: provider ? provider.status : "provider_not_registered",
@@ -1386,7 +1717,7 @@ function recordOperationalMemory(event) {
   guardarJSON(OPERATIONAL_MEMORY_FILE, store);
 }
 
-async function executeProvider({ provider = process.env.CEREBRO_DEFAULT_PROVIDER || "anthropic", system, userContent, maxTokens = 800 }) {
+async function executeProvider({ provider = resolveProviderId(), system, userContent, maxTokens = 800 }) {
   const profile = PROVIDER_CONFIG[provider];
   if (!profile) throw new Error("provider_not_registered");
   if (!profile.enabled) throw new Error("provider_missing_credentials");
@@ -1410,6 +1741,54 @@ async function executeProvider({ provider = process.env.CEREBRO_DEFAULT_PROVIDER
       }
     );
     return response.data.content[0].text;
+  }
+
+  if (provider === "openrouter") {
+    const response = await axios.post(
+      "https://openrouter.ai/api/v1/chat/completions",
+      {
+        model: profile.model,
+        messages: [
+          { role: "system", content: system },
+          { role: "user", content: typeof userContent === "string" ? userContent : JSON.stringify(userContent) },
+        ],
+        temperature: 0.2,
+        max_tokens: maxTokens,
+      },
+      {
+        headers: {
+          authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          "content-type": "application/json",
+          "http-referer": process.env.CEREBRO_PUBLIC_URL || "https://cerebro-app-eta.vercel.app",
+          "x-title": "CEREBRO Human Cabin",
+        },
+        timeout: 30000,
+      }
+    );
+    return response.data?.choices?.[0]?.message?.content || "";
+  }
+
+  if (provider === "openai") {
+    const response = await axios.post(
+      "https://api.openai.com/v1/chat/completions",
+      {
+        model: profile.model,
+        messages: [
+          { role: "system", content: system },
+          { role: "user", content: typeof userContent === "string" ? userContent : JSON.stringify(userContent) },
+        ],
+        temperature: 0.2,
+        max_tokens: maxTokens,
+      },
+      {
+        headers: {
+          authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+          "content-type": "application/json",
+        },
+        timeout: 30000,
+      }
+    );
+    return response.data?.choices?.[0]?.message?.content || "";
   }
 
   throw new Error("provider_adapter_not_implemented");
@@ -1469,6 +1848,7 @@ app.get("/health", (_req, res) => {
 
 app.get("/runtime/status", (_req, res) => {
   const continuity = getRuntimeContinuitySnapshot();
+  const ai = getAICoordinationSnapshot();
   res.json({
     status: continuity.status,
     runtime: "cerebro_governed_prototype",
@@ -1478,7 +1858,12 @@ app.get("/runtime/status", (_req, res) => {
     operational_memory: fs.existsSync(OPERATIONAL_MEMORY_FILE),
     provider_abstraction: "active",
     direct_provider_calls: false,
-    provider_ready: PROVIDER_CONFIG.anthropic.enabled,
+    provider_ready: ai.provider_ready,
+    official_provider: ai.default_provider,
+    human_cabin: "operational",
+    conversations_persistent: true,
+    deliverables_visible: true,
+    memory_backend: getMemoryBackendSnapshot(),
     enterprise_ready: CERTIFICATION_STATUS.enterprise_ready,
     certification: CERTIFICATION_STATUS.classification,
     workflow_continuity: continuity.workflow_continuity,
@@ -1629,6 +2014,179 @@ app.get("/auth/status", (_req, res) => {
 
 app.get("/api/enterprise/capabilities", (_req, res) => {
   res.json({ success: true, capabilities: ENTERPRISE_CAPABILITIES, certification: CERTIFICATION_STATUS });
+});
+
+app.get("/api/human-cabin/state", (_req, res) => {
+  const snapshot = buildExecutiveSnapshot();
+  res.json({
+    success: true,
+    status: "operational",
+    language: "es",
+    human_cabin: {
+      protagonist: true,
+      chat_enabled: true,
+      memory_enabled: snapshot.memory.status === "READY",
+      deliverables_enabled: true,
+      dashboard_preserved: true,
+      mobile_responsive: true,
+    },
+    snapshot,
+  });
+});
+
+app.get("/api/conversations/:sessionId", (req, res) => {
+  const store = readConversationStore();
+  const session = store.sessions.find((item) => item.session_id === req.params.sessionId);
+  if (!session) {
+    return res.json({
+      success: true,
+      session_id: req.params.sessionId,
+      messages: [],
+      persisted: false,
+    });
+  }
+  res.json({
+    success: true,
+    session_id: session.session_id,
+    title: session.title,
+    updated_at: session.updated_at,
+    messages: session.messages,
+    persisted: true,
+  });
+});
+
+app.get("/api/deliverables", (_req, res) => {
+  res.json({
+    success: true,
+    deliverables: getRecentDeliverables(30),
+  });
+});
+
+app.post("/api/chat", async (req, res) => {
+  const { message, session_id: requestedSessionId, context } = req.body || {};
+  if (!message || typeof message !== "string") {
+    return res.status(400).json({
+      success: false,
+      status: "error",
+      reply: "CEO, necesito un mensaje real para poder responder.",
+    });
+  }
+
+  const { store, session } = getOrCreateConversation(requestedSessionId);
+  const snapshot = buildExecutiveSnapshot();
+  const governance = classifyAction({
+    action: "human_cabin_chat",
+    propuesta: message,
+    contexto: typeof context === "string" ? context : JSON.stringify(context || {}),
+    actor: "CEO",
+  });
+  const deliverableRequest = detectDeliverableRequest(message);
+  appendConversationMessage(session, "user", message, { governance_status: governance.status });
+
+  let provider = getAICoordinationSnapshot();
+  let reply = "";
+  let providerError = null;
+
+  if (governance.status === "blocked") {
+    reply = fallbackChatReply(message, snapshot, governance);
+  } else if (provider.provider_ready) {
+    try {
+      reply = await executeProvider({
+        system: buildChatSystemPrompt(snapshot),
+        userContent: {
+          message,
+          context: context || null,
+          governance,
+          deliverable_request: deliverableRequest,
+        },
+        maxTokens: deliverableRequest ? 1300 : 700,
+      });
+      if (!reply) reply = fallbackChatReply(message, snapshot, governance);
+    } catch (error) {
+      providerError = error.message;
+      provider = { ...provider, status: "DEGRADED_PROVIDER_ERROR", provider_ready: false };
+      reply = fallbackChatReply(message, snapshot, governance);
+    }
+  } else {
+    reply = fallbackChatReply(message, snapshot, governance);
+  }
+
+  let deliverable = null;
+  if (deliverableRequest && governance.status !== "blocked") {
+    deliverable = createDeliverable({
+      filename: deliverableRequest.filename,
+      message,
+      reply,
+      snapshot,
+      conversationId: session.session_id,
+    });
+    reply = `${reply}\n\nEntregable generado: ${deliverable.filename}`;
+  }
+
+  appendConversationMessage(session, "assistant", reply, {
+    provider: provider.default_provider,
+    provider_status: provider.status,
+    provider_error: providerError,
+    deliverable_id: deliverable ? deliverable.id : null,
+  });
+  saveConversationStore(store);
+
+  const trace = createDecisionTrace({
+    event: "human_cabin_chat_completed",
+    governance,
+    payload: {
+      operational_impact: deliverable ? "chat_response_and_deliverable_generated" : "chat_response_generated",
+      ecosystem_effect: "human_cabin_memory_updated",
+      protected_state: "secrets_preserved",
+      change_reference: deliverable ? deliverable.filename : "conversation_memory",
+    },
+    decision: {
+      decision: "respondido",
+      razon: providerError ? `fallback_after_provider_error:${providerError}` : "human_cabin_chat",
+      mensaje_final: limitText(reply, 500),
+    },
+  });
+  recordOperationalMemory({
+    event: "human_cabin_chat",
+    summary: limitText(message, 180),
+    provider: provider.default_provider,
+    provider_status: provider.status,
+    governance,
+    decision_trace_id: trace.decision_id,
+    conversation_id: session.session_id,
+    deliverable_id: deliverable ? deliverable.id : null,
+  });
+  recordStrategicConversationMemory({
+    message,
+    reply,
+    governance,
+    conversationId: session.session_id,
+    deliverable,
+  });
+  const workflowTrace = createWorkflowTrace({
+    workflow: "human_cabin_chat",
+    status: providerError ? "completed_with_provider_fallback" : "completed",
+    stage: deliverable ? "chat_and_deliverable_memory_write" : "chat_memory_write",
+    context: { message: limitText(message, 180), session_id: session.session_id },
+    governance,
+    decisionTrace: trace,
+    error: providerError,
+  });
+
+  res.json({
+    success: true,
+    status: providerError ? "completed_with_fallback" : "ok",
+    provider: provider.default_provider,
+    provider_status: provider.status,
+    reply,
+    session_id: session.session_id,
+    conversation_persisted: true,
+    memory_persisted: true,
+    deliverable,
+    governance,
+    decision_trace: trace,
+    workflow_trace: workflowTrace,
+  });
 });
 
 app.get("/governance/audit-snapshot", requireOperationalAuth, (_req, res) => {

@@ -189,6 +189,75 @@
       align-content: space-between;
     }
 
+    .human-cabin-panel {
+      gap: 18px;
+      align-content: stretch;
+    }
+
+    .human-cabin-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .avatar-core {
+      width: 52px;
+      height: 52px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(215,173,99,0.92), rgba(201,141,79,0.24) 52%, rgba(0,0,0,0.18));
+      box-shadow: 0 0 28px rgba(215,173,99,0.24), inset 0 0 0 1px rgba(245,239,229,0.18);
+      color: #19130b;
+      font-weight: 900;
+    }
+
+    .chat-log {
+      min-height: 260px;
+      max-height: 360px;
+      overflow-y: auto;
+      display: grid;
+      align-content: start;
+      gap: 10px;
+      padding: 14px;
+      border-radius: 8px;
+      background: rgba(0,0,0,0.2);
+      box-shadow: inset 0 0 0 1px rgba(245,239,229,0.08);
+    }
+
+    .chat-message {
+      max-width: 92%;
+      padding: 12px 14px;
+      border-radius: 8px;
+      background: rgba(245,239,229,0.07);
+      color: rgba(245,239,229,0.86);
+      line-height: 1.48;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .chat-message.user {
+      justify-self: end;
+      background: rgba(215,173,99,0.16);
+      color: var(--ink);
+    }
+
+    .chat-message.system {
+      max-width: 100%;
+      color: rgba(245,239,229,0.68);
+    }
+
+    .chat-form {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+    }
+
+    .dashboard-band {
+      margin-bottom: 22px;
+    }
+
     .signal-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -345,6 +414,8 @@
       .signal-grid { grid-template-columns: 1fr; }
       .signal strong { font-size: 1.12rem; }
       .panel { padding: 18px; }
+      .chat-form { grid-template-columns: 1fr; }
+      .chat-form .button { width: 100%; }
     }
   </style>
 </head>
@@ -367,41 +438,60 @@
 
     <section class="hero">
       <div class="hero-copy">
-        <p class="eyebrow">Executive operational cockpit</p>
-        <h1>Decide only when evidence can survive pressure.</h1>
-        <p>Cerebro now routes every proposal through governance, decision trace, operational memory, and provider abstraction before any AI execution.</p>
+        <p class="eyebrow">Human Cabin</p>
+        <h1>CEREBRO dirige el ecosistema contigo.</h1>
+        <p>Habla en español, recuerda decisiones, protege el foco y genera entregables visibles sin romper la trazabilidad operacional.</p>
         <div class="command-row">
-          <span>CEO override ready</span>
-          <span>approval gates active</span>
-          <span>direct provider calls isolated</span>
-          <span id="certificationBadge">enterprise readiness checking</span>
+          <span>chat natural activo</span>
+          <span>memoria persistente</span>
+          <span>entregables visibles</span>
+          <span id="certificationBadge">verificando estado</span>
         </div>
+        <div class="quiet-list" id="ecosystemSummary"></div>
       </div>
 
-      <aside class="signal-panel">
-        <div>
-          <p class="eyebrow">Operational state</p>
-          <h2>Governed prototype</h2>
-          <p style="color: var(--muted)">Human Cabin focuses on critical decisions, business impact, governance state, and action clarity.</p>
+      <aside class="signal-panel human-cabin-panel">
+        <div class="human-cabin-header">
+          <div>
+            <p class="eyebrow">CEREBRO habla</p>
+            <h2>Cabina humana</h2>
+          </div>
+          <div class="avatar-core">C</div>
         </div>
-        <div class="signal-grid">
-          <div class="signal"><span>Governance</span><strong id="govSignal">active</strong></div>
-          <div class="signal"><span>Provider</span><strong id="providerSignal">checking</strong></div>
-          <div class="signal"><span>Memory</span><strong id="memorySignal">active</strong></div>
-          <div class="signal"><span>Memory Integrity</span><strong id="memoryIntegritySignal">checking</strong></div>
-          <div class="signal"><span>Trace</span><strong id="traceSignal">active</strong></div>
-          <div class="signal"><span>Workflow</span><strong id="workflowSignal">checking</strong></div>
-          <div class="signal"><span>Automation</span><strong id="automationSignal">checking</strong></div>
-          <div class="signal"><span>Degraded Ops</span><strong id="degradedSignal">checking</strong></div>
-          <div class="signal"><span>AI Coordination</span><strong id="aiSignal">checking</strong></div>
-          <div class="signal"><span>Deploy Trust</span><strong id="deploySignal">checking</strong></div>
-          <div class="signal"><span>Operational Trust</span><strong id="trustSignal">checking</strong></div>
-          <div class="signal"><span>Freeze Baseline</span><strong id="freezeSignal">checking</strong></div>
-          <div class="signal"><span>Final Class</span><strong id="finalClassSignal">checking</strong></div>
-          <div class="signal"><span>Auth</span><strong id="authSignal">checking</strong></div>
-          <div class="signal"><span>Certification</span><strong id="certSignal">not ready</strong></div>
+        <div class="chat-log" id="chatLog" aria-live="polite">
+          <div class="chat-message system">CEO, estoy listo. Puedo resumir el ecosistema, detectar bloqueos, priorizar y generar entregables.</div>
         </div>
+        <form class="chat-form" id="chatForm">
+          <input id="chatInput" autocomplete="off" placeholder="Habla con CEREBRO" />
+          <button class="button" type="submit">Enviar</button>
+        </form>
+        <div class="quiet-list" id="humanDeliverables"></div>
       </aside>
+    </section>
+
+    <section class="signal-panel dashboard-band">
+      <div>
+        <p class="eyebrow">Estado ejecutivo</p>
+        <h2>Dashboard preservado</h2>
+        <p style="color: var(--muted)">La cabina conserva gobierno, memoria, trazas, automatizacion y confianza operacional.</p>
+      </div>
+      <div class="signal-grid">
+        <div class="signal"><span>Governance</span><strong id="govSignal">active</strong></div>
+        <div class="signal"><span>Provider</span><strong id="providerSignal">checking</strong></div>
+        <div class="signal"><span>Memory</span><strong id="memorySignal">active</strong></div>
+        <div class="signal"><span>Memory Integrity</span><strong id="memoryIntegritySignal">checking</strong></div>
+        <div class="signal"><span>Trace</span><strong id="traceSignal">active</strong></div>
+        <div class="signal"><span>Workflow</span><strong id="workflowSignal">checking</strong></div>
+        <div class="signal"><span>Automation</span><strong id="automationSignal">checking</strong></div>
+        <div class="signal"><span>Degraded Ops</span><strong id="degradedSignal">checking</strong></div>
+        <div class="signal"><span>AI Coordination</span><strong id="aiSignal">checking</strong></div>
+        <div class="signal"><span>Deploy Trust</span><strong id="deploySignal">checking</strong></div>
+        <div class="signal"><span>Operational Trust</span><strong id="trustSignal">checking</strong></div>
+        <div class="signal"><span>Freeze Baseline</span><strong id="freezeSignal">checking</strong></div>
+        <div class="signal"><span>Final Class</span><strong id="finalClassSignal">checking</strong></div>
+        <div class="signal"><span>Auth</span><strong id="authSignal">checking</strong></div>
+        <div class="signal"><span>Certification</span><strong id="certSignal">not ready</strong></div>
+      </div>
     </section>
 
     <nav class="tabs" aria-label="Cerebro sections">
@@ -533,6 +623,12 @@
       /^\/governance\/deploy\/probe$/,
     ];
     const storedAuthToken = sessionStorage.getItem(authStorageKey) || "";
+    const conversationStorageKey = "cerebro_human_cabin_conversation";
+    let conversationId = localStorage.getItem(conversationStorageKey);
+    if (!conversationId) {
+      conversationId = `web_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+      localStorage.setItem(conversationStorageKey, conversationId);
+    }
     document.getElementById("authTokenInput").value = storedAuthToken;
     document.getElementById("authSaveButton").addEventListener("click", () => {
       const value = document.getElementById("authTokenInput").value.trim();
@@ -605,6 +701,111 @@
       }
       return null;
     }
+
+    function escapeHtml(value) {
+      return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function addChatMessage(role, content) {
+      const log = document.getElementById("chatLog");
+      const node = document.createElement("div");
+      node.className = `chat-message ${role === "user" ? "user" : role === "system" ? "system" : ""}`;
+      node.textContent = content;
+      log.appendChild(node);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    function renderDeliverables(items) {
+      const target = document.getElementById("humanDeliverables");
+      const list = items || [];
+      target.innerHTML = list.length ? `
+        <article class="quiet-item">
+          <strong>Entregables visibles</strong><br />
+          <small>${list.slice(0, 3).map((item) => escapeHtml(item.filename)).join(" · ")}</small>
+        </article>
+      ` : `
+        <article class="quiet-item">
+          <strong>Entregables</strong><br />
+          <small>Aun no hay entregables generados desde esta cabina.</small>
+        </article>
+      `;
+    }
+
+    function renderEcosystemSummary(snapshot) {
+      const target = document.getElementById("ecosystemSummary");
+      if (!snapshot) return;
+      const apps = (snapshot.apps || []).slice(0, 5).map((app) => app.name).join(", ");
+      const blockers = (snapshot.blockers || []).length;
+      const counts = snapshot.counts || {};
+      target.innerHTML = `
+        <article class="quiet-item">
+          <strong>${escapeHtml(apps || "Sin apps registradas")}</strong><br />
+          <small>decisiones ${counts.decisions || 0} · conversaciones ${counts.conversations || 0} · entregables ${counts.deliverables || 0} · bloqueos ${blockers}</small>
+        </article>
+      `;
+    }
+
+    async function loadConversation() {
+      const data = await jsonFetch(`/api/conversations/${conversationId}`);
+      const log = document.getElementById("chatLog");
+      if (data.messages && data.messages.length) {
+        log.innerHTML = "";
+        data.messages.slice(-20).forEach((message) => addChatMessage(message.role, message.content));
+      }
+    }
+
+    async function loadHumanCabin() {
+      const data = await jsonFetch("/api/human-cabin/state");
+      if (data.success) {
+        renderEcosystemSummary(data.snapshot);
+        renderDeliverables(data.snapshot.recent_deliverables || []);
+      }
+      await loadConversation();
+    }
+
+    document.getElementById("chatForm").addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const input = document.getElementById("chatInput");
+      const message = input.value.trim();
+      if (!message) return;
+      input.value = "";
+      input.disabled = true;
+      addChatMessage("user", message);
+      addChatMessage("system", "CEREBRO esta pensando...");
+      try {
+        const response = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ message, session_id: conversationId, context: { origin: "human_cabin_web" } }),
+        });
+        const data = await response.json();
+        const thinking = document.querySelector("#chatLog .chat-message.system:last-child");
+        if (thinking && thinking.textContent === "CEREBRO esta pensando...") thinking.remove();
+        if (data.session_id) {
+          conversationId = data.session_id;
+          localStorage.setItem(conversationStorageKey, conversationId);
+        }
+        addChatMessage("assistant", data.reply || "CEO, no recibi una respuesta util.");
+        if (data.deliverable) {
+          renderDeliverables([data.deliverable]);
+        } else {
+          const deliverables = await jsonFetch("/api/deliverables");
+          renderDeliverables(deliverables.deliverables || []);
+        }
+        const state = await jsonFetch("/api/human-cabin/state");
+        if (state.success) renderEcosystemSummary(state.snapshot);
+      } catch (error) {
+        addChatMessage("assistant", `CEO, no pude contactar el chat: ${error.message}`);
+      } finally {
+        input.disabled = false;
+        input.focus();
+      }
+    });
 
     async function loadRuntime() {
       const [
@@ -874,6 +1075,9 @@
 
     loadRuntime().catch(() => {
       document.getElementById("runtimeStatus").textContent = "runtime unavailable";
+    });
+    loadHumanCabin().catch(() => {
+      renderDeliverables([]);
     });
     loadResults();
   </script>

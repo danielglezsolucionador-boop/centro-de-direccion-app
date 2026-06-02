@@ -1,5 +1,8 @@
 const assert = require("assert");
 process.env.CEREBRO_AUTH_TOKEN = process.env.CEREBRO_AUTH_TOKEN || "test-auth-token";
+process.env.ANTHROPIC_API_KEY = "";
+process.env.OPENROUTER_API_KEY = "";
+process.env.OPENAI_API_KEY = "";
 
 const {
   classifyAction,
@@ -84,6 +87,36 @@ async function request(method, path, body, options = {}) {
   const capability = await request("GET", "/api/enterprise/capabilities");
   assert.strictEqual(capability.success, true);
   assert.strictEqual(capability.certification.enterprise_ready, false);
+
+  const humanCabin = await request("GET", "/api/human-cabin/state", null, { auth: false });
+  assert.strictEqual(humanCabin.success, true);
+  assert.strictEqual(humanCabin.human_cabin.protagonist, true);
+  assert.strictEqual(humanCabin.human_cabin.chat_enabled, true);
+  assert.ok(Array.isArray(humanCabin.snapshot.apps));
+
+  const chat = await request("POST", "/api/chat", {
+    session_id: "test_human_cabin",
+    message: "Hola CEREBRO, resume el ecosistema.",
+  }, { auth: false });
+  assert.strictEqual(chat.success, true);
+  assert.strictEqual(chat.conversation_persisted, true);
+  assert.ok(chat.reply.includes("CEO") || chat.reply.includes("ecosistema"));
+
+  const deliverableChat = await request("POST", "/api/chat", {
+    session_id: "test_human_cabin",
+    message: "Genera un inventario de aplicaciones y guárdalo como ECOSYSTEM_APPS_REPORT.md",
+  }, { auth: false });
+  assert.strictEqual(deliverableChat.success, true);
+  assert.ok(deliverableChat.deliverable);
+  assert.strictEqual(deliverableChat.deliverable.filename, "ECOSYSTEM_APPS_REPORT.md");
+
+  const conversation = await request("GET", "/api/conversations/test_human_cabin", null, { auth: false });
+  assert.strictEqual(conversation.success, true);
+  assert.ok(conversation.messages.length >= 2);
+
+  const deliverables = await request("GET", "/api/deliverables", null, { auth: false });
+  assert.strictEqual(deliverables.success, true);
+  assert.ok(deliverables.deliverables.some((item) => item.filename === "ECOSYSTEM_APPS_REPORT.md"));
 
   const snapshot = getEnterpriseReadinessSnapshot();
   assert.strictEqual(snapshot.certification.strategic_authority_ready, false);
