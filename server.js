@@ -34,6 +34,23 @@ function envFirst(...names) {
   return "";
 }
 
+function intEnvFirst(fallback, ...names) {
+  for (const name of names) {
+    const value = Number.parseInt(String(process.env[name] || "").trim(), 10);
+    if (Number.isFinite(value) && value > 0) return value;
+  }
+  return fallback;
+}
+
+function boundedProviderMaxTokens(provider, requestedMaxTokens) {
+  const requested = Number.isFinite(Number(requestedMaxTokens)) && Number(requestedMaxTokens) > 0
+    ? Number(requestedMaxTokens)
+    : 800;
+  if (provider !== "openrouter") return requested;
+  const openRouterCap = intEnvFirst(60, "CEREBRO_OPENROUTER_MAX_TOKENS", "OPENROUTER_MAX_TOKENS");
+  return Math.max(1, Math.min(requested, openRouterCap));
+}
+
 const PROVIDER_CONFIG = {
   anthropic: {
     provider_id: "anthropic",
@@ -2210,7 +2227,7 @@ async function executeProvider({ provider = resolveProviderId(), system, userCon
           { role: "user", content: typeof userContent === "string" ? userContent : JSON.stringify(userContent) },
         ],
         temperature: 0.2,
-        max_tokens: maxTokens,
+        max_tokens: boundedProviderMaxTokens(provider, maxTokens),
       },
       {
         headers: {
