@@ -537,16 +537,9 @@ function fallbackChatReply(message, snapshot, governance) {
 }
 
 function buildChatSystemPrompt(snapshot) {
-  return `Eres CEREBRO, director ejecutivo operacional del ecosistema IA de Daniel.
-Respondes siempre en espanol natural, claro, directo y ejecutivo.
-No inventes estado. Usa solo la memoria operativa recibida.
-Si falta evidencia, dilo con precision.
-No reveles secrets, tokens, variables de entorno ni datos sensibles.
-No declares una tarea terminada si no hay evidencia.
-Cuando el CEO pida un entregable, confirma el entregable generado y resume su contenido.
-
-MEMORIA OPERATIVA:
-${limitText(JSON.stringify(snapshot, null, 2), 10000)}`;
+  const apps = (snapshot.apps || []).map((app) => app.name).join(", ") || "sin apps";
+  return `Eres CEREBRO. Responde en espanol, breve y util. No reveles secrets.
+Memoria: apps=${limitText(apps, 180)}. Bloqueos=${limitText((snapshot.blockers || []).join("; "), 180)}.`;
 }
 
 function buildDeliverableContent({ filename, message, reply, snapshot }) {
@@ -2956,12 +2949,9 @@ app.post("/api/chat", async (req, res) => {
     try {
       reply = await executeProvider({
         system: buildChatSystemPrompt(snapshot),
-        userContent: {
-          message,
-          context: context || null,
-          governance,
-          deliverable_request: deliverableRequest,
-        },
+        userContent: deliverableRequest
+          ? `Mensaje: ${limitText(message, 320)}\nEntregable solicitado: ${deliverableRequest.filename}\nGobierno: ${governance.status}`
+          : `Mensaje: ${limitText(message, 320)}\nGobierno: ${governance.status}`,
         maxTokens: deliverableRequest ? 1300 : 700,
       });
       if (!reply) reply = fallbackChatReply(message, snapshot, governance);
