@@ -2218,28 +2218,38 @@ async function executeProvider({ provider = resolveProviderId(), system, userCon
   }
 
   if (provider === "openrouter") {
-    const response = await axios.post(
-      "https://openrouter.ai/api/v1/chat/completions",
-      {
-        model: profile.model,
-        messages: [
-          { role: "system", content: system },
-          { role: "user", content: typeof userContent === "string" ? userContent : JSON.stringify(userContent) },
-        ],
-        temperature: 0.2,
-        max_tokens: boundedProviderMaxTokens(provider, maxTokens),
-      },
-      {
-        headers: {
-          authorization: `Bearer ${envFirst("OPENROUTER_API_KEY", "CEREBRO_OPENROUTER_API_KEY", "FORJA_OPENROUTER_API_KEY")}`,
-          "content-type": "application/json",
-          "http-referer": envFirst("CEREBRO_PUBLIC_URL", "FORJA_PUBLIC_URL") || "https://cerebro-app-eta.vercel.app",
-          "x-title": process.env.CEREBRO_OPENROUTER_TITLE || "CEREBRO Human Cabin",
-        },
-        timeout: 30000,
+    const tokenBudgets = Array.from(new Set([boundedProviderMaxTokens(provider, maxTokens), 8, 1].filter((value) => value > 0)));
+    let lastError = null;
+    for (const tokenBudget of tokenBudgets) {
+      try {
+        const response = await axios.post(
+          "https://openrouter.ai/api/v1/chat/completions",
+          {
+            model: profile.model,
+            messages: [
+              { role: "system", content: system },
+              { role: "user", content: typeof userContent === "string" ? userContent : JSON.stringify(userContent) },
+            ],
+            temperature: 0.2,
+            max_tokens: tokenBudget,
+          },
+          {
+            headers: {
+              authorization: `Bearer ${envFirst("OPENROUTER_API_KEY", "CEREBRO_OPENROUTER_API_KEY", "FORJA_OPENROUTER_API_KEY")}`,
+              "content-type": "application/json",
+              "http-referer": envFirst("CEREBRO_PUBLIC_URL", "FORJA_PUBLIC_URL") || "https://cerebro-app-eta.vercel.app",
+              "x-title": process.env.CEREBRO_OPENROUTER_TITLE || "CEREBRO Human Cabin",
+            },
+            timeout: 30000,
+          }
+        );
+        return response.data?.choices?.[0]?.message?.content || "";
+      } catch (error) {
+        lastError = error;
+        if (error.response?.status !== 402) throw error;
       }
-    );
-    return response.data?.choices?.[0]?.message?.content || "";
+    }
+    throw lastError;
   }
 
   if (provider === "openai") {
