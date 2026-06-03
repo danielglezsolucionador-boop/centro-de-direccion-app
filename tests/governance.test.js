@@ -1,4 +1,5 @@
 const assert = require("assert");
+const axios = require("axios");
 const fs = require("fs");
 const path = require("path");
 process.env.CEREBRO_AUTH_TOKEN = process.env.CEREBRO_AUTH_TOKEN || "test-auth-token";
@@ -28,6 +29,7 @@ const {
   getAutomationSurvivabilitySnapshot,
   getDegradedOperationsSnapshot,
   boundedProviderMaxTokens,
+  executeProvider,
 } = require("../server");
 
 async function request(method, path, body, options = {}) {
@@ -56,10 +58,32 @@ async function request(method, path, body, options = {}) {
 
 (async () => {
   const previousOpenRouterCap = process.env.CEREBRO_OPENROUTER_MAX_TOKENS;
+  delete process.env.CEREBRO_OPENROUTER_MAX_TOKENS;
+  assert.strictEqual(boundedProviderMaxTokens("openrouter", 18000), 18000);
   process.env.CEREBRO_OPENROUTER_MAX_TOKENS = "1";
-  assert.strictEqual(boundedProviderMaxTokens("openrouter", 1300), 900);
+  assert.strictEqual(boundedProviderMaxTokens("openrouter", 18000), 18000);
   if (previousOpenRouterCap === undefined) delete process.env.CEREBRO_OPENROUTER_MAX_TOKENS;
   else process.env.CEREBRO_OPENROUTER_MAX_TOKENS = previousOpenRouterCap;
+
+  const previousOpenRouterKey = process.env.OPENROUTER_API_KEY;
+  process.env.OPENROUTER_API_KEY = "test-openrouter-key";
+  let capturedOpenRouterPayload = null;
+  const originalAxiosPost = axios.post;
+  axios.post = async (_url, payload) => {
+    capturedOpenRouterPayload = payload;
+    return { data: { choices: [{ message: { content: "respuesta completa" } }] } };
+  };
+  const providerText = await executeProvider({
+    provider: "openrouter",
+    system: "Sistema de prueba",
+    userContent: "Mensaje de prueba",
+    maxTokens: 18000,
+  });
+  axios.post = originalAxiosPost;
+  if (previousOpenRouterKey === undefined) delete process.env.OPENROUTER_API_KEY;
+  else process.env.OPENROUTER_API_KEY = previousOpenRouterKey;
+  assert.strictEqual(providerText, "respuesta completa");
+  assert.strictEqual(capturedOpenRouterPayload.max_tokens, 18000);
 
   const safe = classifyAction({ propuesta: "evaluar una oportunidad comercial reversible" });
   assert.strictEqual(safe.status, "allowed");
@@ -86,6 +110,8 @@ async function request(method, path, body, options = {}) {
   const runtime = await request("GET", "/runtime/status");
   assert.strictEqual(runtime.governance_first, true);
   assert.strictEqual(runtime.direct_provider_calls, false);
+  assert.strictEqual(runtime.openrouter_token_budget.default_max_tokens, 18000);
+  assert.strictEqual(runtime.openrouter_token_budget.effective_max_tokens, 18000);
   assert.strictEqual(runtime.enterprise_ready, false);
   assert.ok(runtime.workflow_continuity);
   assert.ok(runtime.memory_continuity);

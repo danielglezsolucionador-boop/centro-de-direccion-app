@@ -25,6 +25,7 @@ const ECOSYSTEM_MEMORY_FILE = path.join(DATA_DIR, "ecosystem_memory.json");
 const DELIVERABLES_DIR = path.join(DATA_DIR, "deliverables");
 const LOCAL_AGENT_REGISTRY_FILE = path.join(DATA_DIR, "local_agent_registry.json");
 const LOCAL_AGENT_TASKS_FILE = path.join(DATA_DIR, "local_agent_tasks.json");
+const OPENROUTER_DEFAULT_MAX_TOKENS = 18000;
 
 function envFirst(...names) {
   for (const name of names) {
@@ -45,12 +46,21 @@ function intEnvFirst(fallback, ...names) {
 function boundedProviderMaxTokens(provider, requestedMaxTokens) {
   const requested = Number.isFinite(Number(requestedMaxTokens)) && Number(requestedMaxTokens) > 0
     ? Number(requestedMaxTokens)
-    : 800;
+    : OPENROUTER_DEFAULT_MAX_TOKENS;
   if (provider !== "openrouter") return requested;
   const configuredCap = intEnvFirst(0, "CEREBRO_OPENROUTER_MAX_TOKENS", "OPENROUTER_MAX_TOKENS");
-  const minimumUsefulCap = 900;
-  const openRouterCap = configuredCap > 0 ? Math.max(configuredCap, minimumUsefulCap) : 1200;
+  const openRouterCap = configuredCap > 0
+    ? Math.max(configuredCap, OPENROUTER_DEFAULT_MAX_TOKENS)
+    : OPENROUTER_DEFAULT_MAX_TOKENS;
   return Math.max(1, Math.min(requested, openRouterCap));
+}
+
+function getOpenRouterTokenBudgetSnapshot() {
+  return {
+    default_max_tokens: OPENROUTER_DEFAULT_MAX_TOKENS,
+    env_configured: Boolean(envFirst("CEREBRO_OPENROUTER_MAX_TOKENS", "OPENROUTER_MAX_TOKENS")),
+    effective_max_tokens: boundedProviderMaxTokens("openrouter", OPENROUTER_DEFAULT_MAX_TOKENS),
+  };
 }
 
 const PROVIDER_CONFIG = {
@@ -82,6 +92,19 @@ const PROVIDER_CONFIG = {
     status: Boolean(envFirst("OPENAI_API_KEY", "CEREBRO_OPENAI_API_KEY")) ? "ready" : "missing_credentials",
   },
 };
+
+function providerHasCredentials(provider) {
+  if (provider === "anthropic") {
+    return Boolean(envFirst("ANTHROPIC_API_KEY", "CEREBRO_ANTHROPIC_API_KEY"));
+  }
+  if (provider === "openrouter") {
+    return Boolean(envFirst("OPENROUTER_API_KEY", "CEREBRO_OPENROUTER_API_KEY", "FORJA_OPENROUTER_API_KEY"));
+  }
+  if (provider === "openai") {
+    return Boolean(envFirst("OPENAI_API_KEY", "CEREBRO_OPENAI_API_KEY"));
+  }
+  return false;
+}
 
 const ENTERPRISE_CAPABILITIES = {
   heart_cabin: {
@@ -2049,9 +2072,9 @@ function getWorkflowTraceSnapshot() {
 
 function resolveProviderId(requestedProvider = process.env.CEREBRO_DEFAULT_PROVIDER || "openrouter") {
   const requested = PROVIDER_CONFIG[requestedProvider] ? requestedProvider : "anthropic";
-  if (PROVIDER_CONFIG[requested] && PROVIDER_CONFIG[requested].enabled) return requested;
+  if (PROVIDER_CONFIG[requested] && providerHasCredentials(requested)) return requested;
   if (process.env.CEREBRO_PROVIDER_ALLOW_FALLBACK === "true") {
-    return Object.keys(PROVIDER_CONFIG).find((providerId) => PROVIDER_CONFIG[providerId].enabled) || requested;
+    return Object.keys(PROVIDER_CONFIG).find((providerId) => providerHasCredentials(providerId)) || requested;
   }
   return requested;
 }
@@ -2060,7 +2083,7 @@ function getAICoordinationSnapshot() {
   const requestedProvider = process.env.CEREBRO_DEFAULT_PROVIDER || "openrouter";
   const defaultProvider = resolveProviderId(requestedProvider);
   const provider = PROVIDER_CONFIG[defaultProvider] || null;
-  const providerReady = Boolean(provider && provider.enabled);
+  const providerReady = Boolean(provider && providerHasCredentials(defaultProvider));
   return {
     status: providerReady ? "READY" : "DEGRADED_PROVIDER_MISSING",
     requested_provider: requestedProvider,
@@ -2068,9 +2091,10 @@ function getAICoordinationSnapshot() {
     provider_failover: defaultProvider !== requestedProvider,
     provider_registered: Boolean(provider),
     provider_ready: providerReady,
-    provider_status: provider ? provider.status : "provider_not_registered",
+    provider_status: provider ? (providerReady ? "ready" : "missing_credentials") : "provider_not_registered",
     provider_mode: provider ? provider.mode : "unavailable",
     credential_env: provider ? provider.credential_env : null,
+    openrouter_token_budget: getOpenRouterTokenBudgetSnapshot(),
     agents_registered: Object.keys(AGENTES).length,
     direct_provider_calls: false,
     governance_preflight_required: true,
@@ -2347,7 +2371,7 @@ function recordOperationalMemory(event) {
 async function executeProvider({ provider = resolveProviderId(), system, userContent, maxTokens = 800, conversationMessages = [] }) {
   const profile = PROVIDER_CONFIG[provider];
   if (!profile) throw new Error("provider_not_registered");
-  if (!profile.enabled) throw new Error("provider_missing_credentials");
+  if (!providerHasCredentials(provider)) throw new Error("provider_missing_credentials");
   const safeHistory = (conversationMessages || [])
     .filter((message) => ["user", "assistant"].includes(message.role) && message.content)
     .slice(-10)
@@ -2522,6 +2546,7 @@ app.get("/runtime/status", (_req, res) => {
     direct_provider_calls: false,
     provider_ready: ai.provider_ready,
     official_provider: ai.default_provider,
+    openrouter_token_budget: ai.openrouter_token_budget,
     human_cabin: "operational",
     conversations_persistent: true,
     deliverables_visible: true,
@@ -3133,7 +3158,7 @@ app.post("/api/chat", async (req, res) => {
         system: buildChatSystemPrompt(snapshot),
         userContent: buildChatUserContent({ message, governance, deliverableRequest, snapshot, session }),
         conversationMessages: getProviderConversationHistory(session),
-        maxTokens: deliverableRequest ? 1800 : 1300,
+        maxTokens: OPENROUTER_DEFAULT_MAX_TOKENS,
       });
       if (!reply) reply = fallbackChatReply(message, snapshot, governance, session);
     } catch (error) {
