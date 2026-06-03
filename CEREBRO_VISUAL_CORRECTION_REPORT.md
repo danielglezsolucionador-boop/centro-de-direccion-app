@@ -21,6 +21,7 @@ Corregir quirurgicamente la capa visual de CEREBRO para acercarla a la referenci
 
 - `public/index.html`
 - `public/brand/cerebro-icon.png`
+- `vercel.json`
 - `CEREBRO_VISUAL_CORRECTION_REPORT.md`
 
 ## Cambios aplicados
@@ -31,6 +32,7 @@ Corregir quirurgicamente la capa visual de CEREBRO para acercarla a la referenci
 - Se sustituyeron los iconos renderizados por template SVG por imagen real.
 - Se elimino el template SVG interno de cabeza/cara.
 - Se elimino el montaje visual de iconos por codigo.
+- Se agrego `public/**` a `includeFiles` de Vercel para que el asset visual se sirva en produccion.
 - Header mantiene solo `CEREBRO` y `Chief of Staff`.
 - Hero mantiene `CEREBRO` y `La segunda mente mas importante de la organizacion`.
 - Copy inicial del chat actualizado a: `Estoy listo para ayudarte a ordenar prioridades, detectar bloqueos y convertir decisiones en ejecucion.`
