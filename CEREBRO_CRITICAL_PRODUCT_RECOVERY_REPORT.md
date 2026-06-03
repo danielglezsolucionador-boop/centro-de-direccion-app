@@ -37,6 +37,7 @@ Cambios:
 
 - OpenRouter ya no queda limitado por defecto a `20` tokens;
 - default de tokens para OpenRouter subido a `1200` si no hay cap explicito;
+- caps productivos inutiles como `1`, `8` o `20` tokens se elevan a un minimo util de `900`;
 - prompt de sistema convertido a Chief of Staff ejecutivo;
 - el proveedor recibe historial reciente de conversacion;
 - el fallback ahora responde con estructura operativa y usa contexto reciente;
@@ -122,6 +123,18 @@ Locales:
 - `GET /api/conversations?limit=1`: PASS
 - UI local despues de recarga muestra historial persistido: PASS
 - UI local muestra boton de voz: PASS
+
+Produccion antes del segundo fix:
+
+- OpenRouter: READY
+- KV: enabled
+- `uses_tmp_only=false`
+- persistencia: PASS
+- respuesta real: FAIL por truncamiento de tokens (`1. **Entendimiento claro**`)
+
+Correccion aplicada:
+
+- se impide que caps de salida demasiado bajos rompan la conversacion CEO.
 
 ## 10. Pendientes reales
 

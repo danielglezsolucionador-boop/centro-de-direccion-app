@@ -47,7 +47,9 @@ function boundedProviderMaxTokens(provider, requestedMaxTokens) {
     ? Number(requestedMaxTokens)
     : 800;
   if (provider !== "openrouter") return requested;
-  const openRouterCap = intEnvFirst(1200, "CEREBRO_OPENROUTER_MAX_TOKENS", "OPENROUTER_MAX_TOKENS");
+  const configuredCap = intEnvFirst(0, "CEREBRO_OPENROUTER_MAX_TOKENS", "OPENROUTER_MAX_TOKENS");
+  const minimumUsefulCap = 900;
+  const openRouterCap = configuredCap > 0 ? Math.max(configuredCap, minimumUsefulCap) : 1200;
   return Math.max(1, Math.min(requested, openRouterCap));
 }
 
@@ -3609,6 +3611,7 @@ module.exports = {
   getDegradedOperationsSnapshot,
   getFallbackExecutionPlan,
   createWorkflowTrace,
+  boundedProviderMaxTokens,
   ENTERPRISE_CAPABILITIES,
   CERTIFICATION_STATUS,
   DATA_DIR,

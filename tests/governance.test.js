@@ -27,6 +27,7 @@ const {
   getWorkflowTraceSnapshot,
   getAutomationSurvivabilitySnapshot,
   getDegradedOperationsSnapshot,
+  boundedProviderMaxTokens,
 } = require("../server");
 
 async function request(method, path, body, options = {}) {
@@ -54,6 +55,12 @@ async function request(method, path, body, options = {}) {
 }
 
 (async () => {
+  const previousOpenRouterCap = process.env.CEREBRO_OPENROUTER_MAX_TOKENS;
+  process.env.CEREBRO_OPENROUTER_MAX_TOKENS = "1";
+  assert.strictEqual(boundedProviderMaxTokens("openrouter", 1300), 900);
+  if (previousOpenRouterCap === undefined) delete process.env.CEREBRO_OPENROUTER_MAX_TOKENS;
+  else process.env.CEREBRO_OPENROUTER_MAX_TOKENS = previousOpenRouterCap;
+
   const safe = classifyAction({ propuesta: "evaluar una oportunidad comercial reversible" });
   assert.strictEqual(safe.status, "allowed");
   assert.strictEqual(safe.approval_required, false);
