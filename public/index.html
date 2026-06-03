@@ -3,37 +3,70 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Centro de Direccion - Cerebro Operational System</title>
-  <link rel="icon" href="data:," />
+  <title>CEREBRO | Chief of Staff</title>
+  <link rel="icon" href="/cerebro-chief-of-staff-icon.svg" />
   <style>
     :root {
-      color: #f5efe5;
-      background: #090908;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      --ink: #f5efe5;
-      --muted: rgba(245, 239, 229, 0.68);
-      --soft: rgba(245, 239, 229, 0.1);
-      --line: rgba(245, 239, 229, 0.14);
-      --graphite: #141311;
-      --gold: #d7ad63;
-      --amber: #c98d4f;
-      --sage: #91ad9e;
-      --risk: #c56f5f;
+      color-scheme: dark;
+      --bg: #05070a;
+      --bg-soft: #090d12;
+      --surface: rgba(13, 17, 24, 0.82);
+      --surface-raised: rgba(18, 23, 31, 0.88);
+      --surface-soft: rgba(255, 255, 255, 0.045);
+      --line: rgba(226, 185, 101, 0.18);
+      --line-soft: rgba(255, 255, 255, 0.08);
+      --text: #f4efe6;
+      --muted: rgba(244, 239, 230, 0.66);
+      --quiet: rgba(244, 239, 230, 0.46);
+      --gold: #d7a84d;
+      --gold-soft: rgba(215, 168, 77, 0.14);
+      --champagne: #f0d49a;
+      --blue: #1b2f52;
+      --violet: #30244a;
+      --shadow: 0 24px 80px rgba(0, 0, 0, 0.46);
+      --shadow-soft: 0 12px 34px rgba(0, 0, 0, 0.28);
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-width: 320px;
+      scroll-behavior: smooth;
+    }
 
     body {
-      min-width: 0;
+      min-width: 320px;
+      min-height: 100vh;
       margin: 0;
       overflow-x: hidden;
+      color: var(--text);
       background:
-        radial-gradient(circle at 15% -8%, rgba(215, 173, 99, 0.16), transparent 28rem),
-        radial-gradient(circle at 90% 10%, rgba(145, 173, 158, 0.08), transparent 28rem),
-        linear-gradient(180deg, #0c0b0a 0%, #090908 55%, #0d0c0b 100%);
+        radial-gradient(circle at 50% 100%, rgba(132, 148, 171, 0.16), transparent 42rem),
+        linear-gradient(145deg, rgba(48, 36, 74, 0.18), transparent 34rem),
+        linear-gradient(180deg, #020407 0%, #071018 48%, #05070a 100%);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
     }
 
-    button, input, textarea, select {
+    body::after {
+      position: fixed;
+      inset: auto -10% -18% -10%;
+      z-index: -1;
+      height: 34vh;
+      content: "";
+      background:
+        radial-gradient(circle at 30% 44%, rgba(255, 255, 255, 0.18), transparent 0.16rem),
+        radial-gradient(circle at 66% 35%, rgba(255, 255, 255, 0.16), transparent 0.12rem),
+        linear-gradient(90deg, rgba(235, 231, 222, 0.38), rgba(111, 126, 148, 0.32));
+      filter: blur(0.2px);
+      opacity: 0.58;
+      mask-image: linear-gradient(180deg, transparent, #000 28%, #000);
+    }
+
+    button,
+    textarea,
+    input {
       font: inherit;
     }
 
@@ -43,10 +76,10 @@
       cursor: pointer;
     }
 
-    .shell {
-      width: min(1240px, 100%);
+    .app-shell {
+      width: min(1500px, 100%);
       margin: 0 auto;
-      padding: 26px clamp(16px, 4%, 54px) 56px;
+      padding: 22px clamp(14px, 2.6vw, 34px) 34px;
     }
 
     .topbar {
@@ -54,7 +87,7 @@
       align-items: center;
       justify-content: space-between;
       gap: 18px;
-      min-height: 58px;
+      min-height: 68px;
     }
 
     .brand {
@@ -64,1109 +97,942 @@
       min-width: 0;
     }
 
-    .mark {
-      display: grid;
-      width: 42px;
-      height: 42px;
-      place-items: center;
-      border-radius: 50%;
-      color: var(--gold);
-      background: linear-gradient(145deg, rgba(245,239,229,0.1), rgba(245,239,229,0.03)), var(--graphite);
-      box-shadow: inset 0 0 0 1px var(--line);
-      font-size: 0.8rem;
-      font-weight: 800;
+    .brand-icon,
+    .brand-icon svg {
+      width: 56px;
+      height: 56px;
+      flex: 0 0 auto;
     }
 
-    .brand strong { display: block; font-size: 1rem; }
-    .brand span { display: block; color: var(--muted); font-size: 0.86rem; }
+    .brand-copy strong,
+    .brand-copy span {
+      display: block;
+    }
 
-    .status-pill {
-      padding: 10px 14px;
-      border-radius: 999px;
-      background: rgba(245, 239, 229, 0.06);
-      color: rgba(245, 239, 229, 0.72);
-      box-shadow: inset 0 0 0 1px var(--line);
-      font-size: 0.86rem;
-      overflow-wrap: anywhere;
-      max-width: 100%;
+    .brand-copy strong {
+      color: var(--champagne);
+      font-size: clamp(1.5rem, 3vw, 2.35rem);
+      font-weight: 520;
+      letter-spacing: 0.28em;
+      line-height: 1;
+    }
+
+    .brand-copy span {
+      margin-top: 8px;
+      color: rgba(240, 212, 154, 0.8);
+      font-size: 0.76rem;
+      font-weight: 600;
+      letter-spacing: 0.34em;
+      text-transform: uppercase;
+    }
+
+    .mobile-menu-button,
+    .icon-button,
+    .send-button,
+    .action-button,
+    .auth-control button {
+      min-height: 44px;
+      border-radius: 8px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.095), rgba(255, 255, 255, 0.045));
+      box-shadow: inset 0 0 0 1px var(--line-soft), var(--shadow-soft);
+      transition: transform 180ms ease, box-shadow 180ms ease, background 180ms ease, border-color 180ms ease;
+    }
+
+    .mobile-menu-button:hover,
+    .icon-button:hover,
+    .send-button:hover,
+    .action-button:hover,
+    .auth-control button:hover {
+      transform: translateY(-1px);
+      background: linear-gradient(180deg, rgba(215, 168, 77, 0.22), rgba(255, 255, 255, 0.065));
+      box-shadow: 0 14px 36px rgba(215, 168, 77, 0.13), inset 0 0 0 1px rgba(215, 168, 77, 0.28);
+    }
+
+    .mobile-menu-button:active,
+    .icon-button:active,
+    .send-button:active,
+    .action-button:active,
+    .auth-control button:active {
+      transform: translateY(0);
+      box-shadow: inset 0 0 0 1px rgba(215, 168, 77, 0.32), 0 6px 18px rgba(0, 0, 0, 0.28);
+    }
+
+    .mobile-menu-button:focus-visible,
+    .icon-button:focus-visible,
+    .send-button:focus-visible,
+    .action-button:focus-visible,
+    .auth-control button:focus-visible,
+    textarea:focus-visible,
+    input:focus-visible {
+      outline: 2px solid rgba(240, 212, 154, 0.72);
+      outline-offset: 3px;
+    }
+
+    .mobile-menu-button {
+      display: none;
+      width: 46px;
+      place-items: center;
+      padding: 0;
+    }
+
+    .mobile-menu-button span,
+    .mobile-menu-button::before,
+    .mobile-menu-button::after {
+      display: block;
+      width: 18px;
+      height: 1px;
+      content: "";
+      background: var(--champagne);
+    }
+
+    .mobile-menu-button {
+      gap: 5px;
+      flex-direction: column;
+    }
+
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
     }
 
     .auth-control {
       display: flex;
       align-items: center;
       gap: 8px;
-      max-width: min(420px, 100%);
+      max-width: 340px;
+      opacity: 0.7;
     }
 
     .auth-control input {
       min-width: 0;
-      height: 40px;
-      border-radius: 999px;
-      border: 1px solid var(--line);
-      background: rgba(245,239,229,0.06);
-      color: var(--ink);
-      padding: 0 13px;
+      height: 42px;
+      border: 1px solid var(--line-soft);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.045);
+      color: var(--text);
+      padding: 0 12px;
     }
 
     .auth-control button {
-      height: 40px;
-      padding: 0 13px;
-      border-radius: 999px;
-      background: rgba(215,173,99,0.16);
-      box-shadow: inset 0 0 0 1px rgba(215,173,99,0.28);
-      color: var(--ink);
-      font-weight: 800;
+      padding: 0 14px;
+      color: var(--champagne);
+      font-size: 0.84rem;
+      font-weight: 700;
     }
 
-    .hero {
-      display: grid;
-      grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
-      gap: clamp(22px, 4%, 56px);
-      align-items: center;
-      min-height: 520px;
-      padding: 56px 0 36px;
-    }
-
-    .eyebrow {
-      margin: 0 0 12px;
-      color: var(--amber);
-      font-size: 0.72rem;
-      font-weight: 800;
-      letter-spacing: 0;
-      text-transform: uppercase;
-    }
-
-    h1, h2, h3, p { margin-top: 0; letter-spacing: 0; }
-
-    h1 {
-      max-width: 760px;
-      margin-bottom: 22px;
-      font-size: 4.8rem;
-      line-height: 0.94;
-      font-weight: 800;
-    }
-
-    h2 {
-      margin-bottom: 8px;
-      font-size: 2rem;
-      line-height: 1;
-    }
-
-    .hero-copy > p:not(.eyebrow) {
-      max-width: 640px;
-      color: var(--muted);
-      font-size: 1.05rem;
-      line-height: 1.7;
-    }
-
-    .command-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 28px;
-    }
-
-    .command-row span {
+    .runtime-pill {
+      max-width: 230px;
       padding: 10px 13px;
-      border-radius: 999px;
-      background: rgba(245,239,229,0.07);
-      box-shadow: inset 0 0 0 1px var(--line);
-      color: rgba(245,239,229,0.82);
-      font-size: 0.86rem;
-      overflow-wrap: anywhere;
-    }
-
-    .signal-panel, .panel {
       border-radius: 8px;
-      background: linear-gradient(150deg, rgba(245,239,229,0.08), rgba(245,239,229,0.025)), rgba(20,19,17,0.72);
-      box-shadow: 0 36px 100px rgba(0,0,0,0.4), inset 0 0 0 1px var(--line);
-    }
-
-    .signal-panel {
-      padding: 28px;
-      min-height: 360px;
-      display: grid;
-      align-content: space-between;
-    }
-
-    .human-cabin-panel {
-      gap: 18px;
-      align-content: stretch;
-    }
-
-    .human-cabin-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 14px;
-    }
-
-    .avatar-core {
-      width: 52px;
-      height: 52px;
-      display: grid;
-      place-items: center;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(215,173,99,0.92), rgba(201,141,79,0.24) 52%, rgba(0,0,0,0.18));
-      box-shadow: 0 0 28px rgba(215,173,99,0.24), inset 0 0 0 1px rgba(245,239,229,0.18);
-      color: #19130b;
-      font-weight: 900;
-    }
-
-    .chat-log {
-      min-height: 260px;
-      max-height: 360px;
-      overflow-y: auto;
-      display: grid;
-      align-content: start;
-      gap: 10px;
-      padding: 14px;
-      border-radius: 8px;
-      background: rgba(0,0,0,0.2);
-      box-shadow: inset 0 0 0 1px rgba(245,239,229,0.08);
-    }
-
-    .chat-message {
-      max-width: 92%;
-      padding: 12px 14px;
-      border-radius: 8px;
-      background: rgba(245,239,229,0.07);
-      color: rgba(245,239,229,0.86);
-      line-height: 1.48;
-      white-space: pre-wrap;
-      overflow-wrap: anywhere;
-    }
-
-    .chat-message.user {
-      justify-self: end;
-      background: rgba(215,173,99,0.16);
-      color: var(--ink);
-    }
-
-    .chat-message.system {
-      max-width: 100%;
-      color: rgba(245,239,229,0.68);
-    }
-
-    .chat-form {
-      display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 10px;
-    }
-
-    .dashboard-band {
-      margin-bottom: 22px;
-    }
-
-    .signal-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
-      margin-top: 22px;
-    }
-
-    .signal {
-      min-height: 104px;
-      padding: 16px;
-      border-radius: 8px;
-      background: rgba(0,0,0,0.22);
-      box-shadow: inset 0 0 0 1px rgba(245,239,229,0.08);
-    }
-
-    .signal span {
+      background: rgba(255, 255, 255, 0.05);
       color: var(--muted);
-      font-size: 0.82rem;
-    }
-
-    .signal strong {
-      display: block;
-      margin-top: 8px;
-      font-size: 1.5rem;
-      overflow-wrap: anywhere;
-      line-height: 1.08;
-    }
-
-    .tabs {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin: 16px 0;
-    }
-
-    .tab {
-      min-height: 40px;
-      padding: 0 16px;
-      border-radius: 999px;
-      background: rgba(245,239,229,0.06);
-      box-shadow: inset 0 0 0 1px var(--line);
-      color: rgba(245,239,229,0.7);
-    }
-
-    .tab.active {
-      background: rgba(215,173,99,0.16);
-      color: var(--ink);
-    }
-
-    .panel {
-      display: none;
-      padding: 26px;
-      margin-top: 14px;
-    }
-
-    .panel.active { display: block; }
-
-    .form-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
-      gap: 18px;
-    }
-
-    label {
-      display: block;
-      margin-bottom: 7px;
-      color: var(--amber);
+      box-shadow: inset 0 0 0 1px var(--line-soft);
       font-size: 0.78rem;
-      font-weight: 800;
-      text-transform: uppercase;
-    }
-
-    textarea, input, select {
-      width: 100%;
-      border: 1px solid rgba(245,239,229,0.12);
-      border-radius: 8px;
-      background: rgba(0,0,0,0.28);
-      color: var(--ink);
-      padding: 12px 13px;
-      outline: none;
-    }
-
-    textarea:focus, input:focus, select:focus {
-      border-color: rgba(215,173,99,0.55);
-      box-shadow: 0 0 0 3px rgba(215,173,99,0.08);
-    }
-
-    .field { margin-bottom: 14px; }
-
-    .button {
-      min-height: 46px;
-      border-radius: 8px;
-      background: linear-gradient(135deg, var(--gold), var(--amber));
-      color: #14110c;
-      padding: 0 18px;
-      font-weight: 800;
-    }
-
-    .button.secondary {
-      background: rgba(245,239,229,0.07);
-      color: var(--ink);
-      box-shadow: inset 0 0 0 1px var(--line);
-    }
-
-    .result {
-      margin-top: 18px;
-      padding: 18px;
-      border-radius: 8px;
-      background: rgba(0,0,0,0.2);
-      color: rgba(245,239,229,0.78);
-      white-space: pre-wrap;
-      overflow-wrap: anywhere;
-    }
-
-    .quiet-list {
-      display: grid;
-      gap: 10px;
-      margin-top: 16px;
-    }
-
-    .quiet-item {
-      min-width: 0;
-      padding: 15px;
-      border-radius: 8px;
-      background: rgba(0,0,0,0.22);
-      box-shadow: inset 0 0 0 1px rgba(245,239,229,0.08);
-      overflow-wrap: anywhere;
-    }
-
-    .quiet-item small {
-      color: var(--muted);
-      overflow-wrap: anywhere;
-    }
-
-    .footer {
-      margin-top: 28px;
-      color: rgba(245,239,229,0.48);
-      font-size: 0.86rem;
-    }
-
-    @media (max-width: 860px) {
-      .hero, .form-grid { grid-template-columns: 1fr; }
-      h1 { font-size: 3.4rem; }
-      .signal-panel { min-height: auto; }
-    }
-
-    @media (max-width: 520px) {
-      .shell { padding: 18px 14px 32px; }
-      .topbar { align-items: flex-start; flex-direction: column; }
-      .auth-control { width: 100%; }
-      .auth-control input { flex: 1; }
-      h1 { max-width: 315px; font-size: 2.34rem; line-height: 1.05; }
-      .command-row span, .tab { width: 100%; text-align: center; }
-      .signal-grid { grid-template-columns: 1fr; }
-      .signal strong { font-size: 1.12rem; }
-      .panel { padding: 18px; }
-      .chat-form { grid-template-columns: 1fr; }
-      .chat-form .button { width: 100%; }
-    }
-
-    /* Premium CEO Executive OS */
-    :root {
-      --executive-bg: #0b0b0b;
-      --executive-surface: rgba(255, 255, 255, 0.055);
-      --executive-surface-strong: rgba(255, 255, 255, 0.085);
-      --executive-line: rgba(245, 239, 229, 0.12);
-      --executive-line-soft: rgba(245, 239, 229, 0.07);
-      --executive-text: #f4efe7;
-      --executive-muted: rgba(244, 239, 231, 0.62);
-      --executive-soft: rgba(244, 239, 231, 0.42);
-      --executive-accent: #d9bd82;
-      --executive-accent-soft: rgba(217, 189, 130, 0.13);
-      --executive-shadow: 0 24px 80px rgba(0, 0, 0, 0.34);
-    }
-
-    body {
-      min-width: 320px;
-      background:
-        linear-gradient(180deg, #11110f 0%, var(--executive-bg) 44%, #0e0d0c 100%),
-        #0b0b0b;
-    }
-
-    .shell {
-      width: min(1480px, 100%);
-      padding: 22px clamp(18px, 3vw, 42px) 42px;
-    }
-
-    .topbar {
-      min-height: 60px;
-      padding: 8px 0 18px;
-    }
-
-    .brand strong {
-      color: var(--executive-text);
-      font-weight: 760;
-    }
-
-    .brand span,
-    .status-pill {
-      color: var(--executive-muted);
-    }
-
-    .mark {
-      border-radius: 12px;
-      background: rgba(255, 255, 255, 0.06);
-      color: var(--executive-accent);
-      box-shadow: inset 0 0 0 1px var(--executive-line);
-    }
-
-    .auth-control {
-      opacity: 0.72;
-    }
-
-    .auth-control input,
-    .auth-control button,
-    .status-pill {
-      border-radius: 12px;
-      background: var(--executive-surface);
-      box-shadow: inset 0 0 0 1px var(--executive-line-soft);
-    }
-
-    .status-pill {
-      max-width: 280px;
-      white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
-    .executive-os {
+    .office {
       display: grid;
-      grid-template-columns: minmax(230px, 0.72fr) minmax(520px, 1.82fr) minmax(230px, 0.72fr);
-      gap: clamp(16px, 2vw, 24px);
-      align-items: stretch;
-      min-height: calc(100vh - 116px);
-      padding: 10px 0 24px;
+      grid-template-columns: 238px minmax(0, 1fr) 318px;
+      gap: 16px;
+      min-height: calc(100vh - 114px);
+      padding-top: 14px;
     }
 
-    .executive-rail {
-      display: grid;
-      align-content: start;
-      gap: 14px;
-      min-width: 0;
-    }
-
-    .executive-card,
-    .chat-stage,
-    .dashboard-band,
-    .panel {
+    .sidebar,
+    .chat-center,
+    .context-panel,
+    .drawer-panel,
+    .mobile-drawer {
       border-radius: 8px;
-      background: linear-gradient(180deg, var(--executive-surface-strong), rgba(255, 255, 255, 0.035));
-      box-shadow: var(--executive-shadow), inset 0 0 0 1px var(--executive-line);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.075), rgba(255, 255, 255, 0.026)),
+        rgba(6, 9, 13, 0.76);
+      box-shadow: var(--shadow), inset 0 0 0 1px rgba(215, 168, 77, 0.16);
       backdrop-filter: blur(18px);
     }
 
-    .executive-card {
-      min-width: 0;
-      padding: 18px;
-    }
-
-    .executive-card.primary-context {
-      min-height: 190px;
-    }
-
-    .executive-card h2,
-    .executive-card h3 {
-      margin: 0 0 10px;
-      color: var(--executive-text);
-      font-size: 1.02rem;
-      font-weight: 720;
-      line-height: 1.22;
-    }
-
-    .executive-card p {
-      margin: 0;
-      color: var(--executive-muted);
-      font-size: 0.92rem;
-      line-height: 1.55;
-    }
-
-    .primary-context > p:not(.executive-label):not(.executive-intro) {
-      display: none;
-    }
-
-    .executive-card ul {
+    .sidebar {
       display: grid;
-      gap: 10px;
+      grid-template-rows: auto 1fr auto;
+      gap: 18px;
+      padding: 16px;
+      min-width: 0;
+    }
+
+    .sidebar-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+      padding: 6px 4px 16px;
+      border-bottom: 1px solid var(--line-soft);
+    }
+
+    .sidebar-brand .brand-icon,
+    .sidebar-brand .brand-icon svg {
+      width: 48px;
+      height: 48px;
+    }
+
+    .sidebar-brand strong {
+      display: block;
+      color: var(--champagne);
+      font-size: 1rem;
+      font-weight: 600;
+      letter-spacing: 0.28em;
+    }
+
+    .sidebar-brand span {
+      display: block;
+      margin-top: 4px;
+      color: rgba(240, 212, 154, 0.72);
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+    }
+
+    .nav-list {
+      display: grid;
+      align-content: start;
+      gap: 8px;
       margin: 0;
       padding: 0;
       list-style: none;
     }
 
-    .executive-card li {
-      color: rgba(244, 239, 231, 0.78);
-      font-size: 0.9rem;
-      line-height: 1.44;
-      overflow-wrap: anywhere;
+    .nav-list a,
+    .profile-strip {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      min-height: 42px;
+      padding: 0 12px;
+      border-radius: 8px;
+      color: rgba(244, 239, 230, 0.78);
+      text-decoration: none;
+      transition: transform 180ms ease, background 180ms ease, box-shadow 180ms ease, color 180ms ease;
     }
 
-    .executive-card li::before {
-      content: "";
-      display: inline-block;
-      width: 5px;
-      height: 5px;
-      margin-right: 9px;
-      margin-bottom: 2px;
+    .nav-list a:hover,
+    .nav-list a.active {
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.075);
+      box-shadow: inset 0 0 0 1px rgba(215, 168, 77, 0.16);
+      transform: translateY(-1px);
+    }
+
+    .nav-list svg,
+    .profile-strip svg {
+      width: 18px;
+      height: 18px;
+      color: var(--champagne);
+      opacity: 0.88;
+    }
+
+    .profile-strip {
+      min-height: 58px;
+      border-top: 1px solid var(--line-soft);
+      border-radius: 0;
+      padding: 14px 4px 0;
+      color: var(--muted);
+    }
+
+    .profile-avatar {
+      width: 34px;
+      height: 34px;
       border-radius: 50%;
-      background: var(--executive-accent);
-      opacity: 0.62;
+      background: linear-gradient(145deg, rgba(240, 212, 154, 0.42), rgba(25, 24, 24, 0.94));
+      box-shadow: inset 0 0 0 1px rgba(240, 212, 154, 0.26);
     }
 
-    .executive-label,
+    .chat-center {
+      display: grid;
+      grid-template-rows: auto minmax(430px, 1fr) auto auto;
+      gap: 18px;
+      min-width: 0;
+      padding: clamp(18px, 2.6vw, 30px);
+    }
+
+    .chat-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 18px;
+    }
+
+    .chat-title {
+      min-width: 0;
+    }
+
     .eyebrow {
-      margin: 0 0 12px;
-      color: var(--executive-accent);
+      margin: 0 0 10px;
+      color: var(--gold);
       font-size: 0.72rem;
-      font-weight: 760;
-      letter-spacing: 0;
+      font-weight: 700;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
     }
 
-    .executive-meta {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 16px;
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+      letter-spacing: 0;
     }
 
-    .executive-meta span,
-    .command-row span {
-      padding: 8px 10px;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.05);
-      color: var(--executive-muted);
-      box-shadow: inset 0 0 0 1px var(--executive-line-soft);
-      font-size: 0.78rem;
-    }
-
-    .chat-stage {
-      min-width: 0;
-      display: grid;
-      grid-template-rows: auto minmax(420px, 1fr) auto auto;
-      gap: 18px;
-      padding: clamp(22px, 3vw, 38px);
-    }
-
-    .human-cabin-header {
-      align-items: flex-start;
-    }
-
-    .chat-title h1 {
-      max-width: 760px;
+    h1 {
       margin: 0;
-      color: var(--executive-text);
-      font-size: clamp(2.4rem, 5vw, 5.4rem);
-      line-height: 0.98;
-      font-weight: 770;
+      color: var(--text);
+      font-size: clamp(2.45rem, 5.7vw, 5.7rem);
+      font-weight: 520;
+      line-height: 0.96;
     }
 
-    .chat-title p:not(.eyebrow) {
-      max-width: 720px;
+    .subtitle {
+      max-width: 680px;
       margin: 16px 0 0;
-      color: var(--executive-muted);
-      font-size: 1.02rem;
-      line-height: 1.72;
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.7;
     }
 
-    .avatar-core {
-      width: 54px;
-      height: 54px;
-      border-radius: 16px;
-      background: var(--executive-accent-soft);
-      color: var(--executive-accent);
-      box-shadow: inset 0 0 0 1px rgba(217, 189, 130, 0.22);
+    .hero-icon,
+    .hero-icon svg {
+      width: clamp(78px, 10vw, 118px);
+      height: clamp(92px, 12vw, 138px);
+      flex: 0 0 auto;
     }
 
     .chat-log {
-      min-height: 420px;
-      max-height: none;
-      padding: clamp(18px, 2vw, 28px);
-      gap: 18px;
+      display: grid;
+      align-content: start;
+      gap: 16px;
+      min-height: 430px;
+      overflow-y: auto;
+      padding: clamp(16px, 2vw, 24px);
       border-radius: 8px;
-      background: rgba(0, 0, 0, 0.16);
-      box-shadow: inset 0 0 0 1px var(--executive-line-soft);
-      scrollbar-color: rgba(217, 189, 130, 0.38) transparent;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.048), rgba(255, 255, 255, 0.018)),
+        rgba(0, 0, 0, 0.22);
+      box-shadow: inset 0 0 0 1px var(--line-soft);
+      scrollbar-color: rgba(215, 168, 77, 0.45) transparent;
     }
 
     .chat-message {
       max-width: min(780px, 94%);
       padding: 16px 18px;
       border-radius: 8px;
-      background: rgba(255, 255, 255, 0.06);
-      color: rgba(244, 239, 231, 0.88);
+      color: rgba(244, 239, 230, 0.9);
+      background: rgba(255, 255, 255, 0.055);
+      box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.065);
       font-size: 1rem;
-      line-height: 1.68;
-      box-shadow: inset 0 0 0 1px var(--executive-line-soft);
+      line-height: 1.72;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
     }
 
+    .chat-message.assistant,
     .chat-message:not(.user):not(.system) {
-      background: rgba(255, 255, 255, 0.075);
-      color: var(--executive-text);
-    }
-
-    .chat-message.user {
-      max-width: min(680px, 86%);
-      background: rgba(217, 189, 130, 0.14);
-      color: var(--executive-text);
-      box-shadow: inset 0 0 0 1px rgba(217, 189, 130, 0.18);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.072), rgba(255, 255, 255, 0.036)),
+        rgba(8, 12, 18, 0.82);
+      color: var(--text);
     }
 
     .chat-message.system {
-      max-width: min(760px, 96%);
-      color: var(--executive-muted);
+      max-width: min(820px, 100%);
+      color: var(--muted);
       background: rgba(255, 255, 255, 0.04);
     }
 
+    .chat-message.user {
+      justify-self: end;
+      max-width: min(640px, 86%);
+      background: rgba(215, 168, 77, 0.14);
+      color: var(--text);
+      box-shadow: inset 0 0 0 1px rgba(215, 168, 77, 0.18);
+    }
+
     .chat-form {
-      grid-template-columns: minmax(0, 1fr) auto;
-      gap: 12px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 54px;
+      gap: 10px;
       padding: 10px;
       border-radius: 8px;
-      background: rgba(255, 255, 255, 0.055);
-      box-shadow: inset 0 0 0 1px var(--executive-line);
+      background: rgba(255, 255, 255, 0.06);
+      box-shadow: inset 0 0 0 1px rgba(215, 168, 77, 0.16), 0 20px 54px rgba(0, 0, 0, 0.28);
     }
 
     #chatInput {
+      width: 100%;
       min-height: 56px;
+      max-height: 170px;
       border: 0;
       border-radius: 8px;
       background: transparent;
-      color: var(--executive-text);
-      font-size: 1rem;
-      line-height: 1.45;
-      resize: none;
+      color: var(--text);
+      padding: 14px 12px;
+      outline: none;
+      resize: vertical;
+      line-height: 1.48;
     }
 
     #chatInput::placeholder {
-      color: rgba(244, 239, 231, 0.42);
+      color: rgba(244, 239, 230, 0.44);
     }
 
-    .button {
-      min-height: 56px;
-      border-radius: 8px;
-      background: linear-gradient(135deg, #e2c98f, #caa45f);
-      color: #17130d;
-      font-weight: 760;
-      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+    .send-button {
+      display: grid;
+      width: 54px;
+      min-height: 54px;
+      place-items: center;
+      color: #120f09;
+      background: linear-gradient(145deg, #f0d49a, #c58d37);
+      box-shadow: 0 14px 34px rgba(215, 168, 77, 0.18), inset 0 0 0 1px rgba(255, 255, 255, 0.22);
     }
 
-    .button.secondary {
-      background: rgba(255, 255, 255, 0.06);
-      color: var(--executive-text);
-      box-shadow: inset 0 0 0 1px var(--executive-line);
+    .summary-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      min-height: 31px;
     }
 
-    .quiet-list {
-      gap: 10px;
-    }
-
-    .quiet-item {
+    .summary-chips span,
+    .chip {
+      padding: 8px 10px;
+      border-radius: 999px;
+      color: var(--muted);
       background: rgba(255, 255, 255, 0.045);
-      color: var(--executive-text);
-      box-shadow: inset 0 0 0 1px var(--executive-line-soft);
+      box-shadow: inset 0 0 0 1px var(--line-soft);
+      font-size: 0.78rem;
     }
 
-    .quiet-item small {
-      color: var(--executive-muted);
-      line-height: 1.45;
+    .context-panel {
+      display: grid;
+      align-content: start;
+      gap: 12px;
+      min-width: 0;
+      padding: 14px;
     }
 
-    .dashboard-band {
-      margin-top: 14px;
-      margin-bottom: 18px;
-      padding: 20px;
-      opacity: 0.84;
+    .drawer-panel {
+      min-width: 0;
+      padding: 16px;
     }
 
-    .dashboard-band h2 {
-      font-size: 1.35rem;
+    .drawer-panel h2,
+    .drawer-panel h3 {
+      margin: 0 0 10px;
+      color: var(--text);
+      font-size: 1rem;
+      font-weight: 620;
+      line-height: 1.25;
     }
 
-    .signal-grid {
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-      gap: 10px;
+    .drawer-panel p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.54;
     }
 
-    .signal {
-      min-height: 82px;
-      background: rgba(255, 255, 255, 0.035);
+    .drawer-panel ul {
+      display: grid;
+      gap: 9px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
     }
 
-    .signal strong {
-      font-size: 1.05rem;
-      font-weight: 680;
+    .drawer-panel li {
+      color: rgba(244, 239, 230, 0.78);
+      font-size: 0.88rem;
+      line-height: 1.42;
+      overflow-wrap: anywhere;
     }
 
-    .tabs {
-      opacity: 0.78;
+    .drawer-panel li::before {
+      display: inline-block;
+      width: 20px;
+      color: var(--gold);
+      content: attr(data-index);
+      font-size: 0.72rem;
     }
 
-    .panel {
-      background: rgba(255, 255, 255, 0.05);
+    .ecosystem-orbit {
+      display: grid;
+      min-height: 180px;
+      place-items: center;
+      padding: 10px 0;
+    }
+
+    .orbit {
+      position: relative;
+      width: 162px;
+      height: 162px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(215, 168, 77, 0.2), transparent 32%);
+      box-shadow: inset 0 0 0 1px rgba(215, 168, 77, 0.18);
+    }
+
+    .orbit::before,
+    .orbit::after {
+      position: absolute;
+      inset: 26px;
+      border: 1px solid rgba(215, 168, 77, 0.16);
+      border-radius: 50%;
+      content: "";
+    }
+
+    .orbit::after {
+      inset: 54px;
+    }
+
+    .orbit-node {
+      position: absolute;
+      width: 28px;
+      height: 28px;
+      display: grid;
+      place-items: center;
+      border-radius: 50%;
+      color: var(--champagne);
+      background: rgba(215, 168, 77, 0.12);
+      box-shadow: inset 0 0 0 1px rgba(215, 168, 77, 0.32);
+      font-size: 0.74rem;
+    }
+
+    .orbit-node:nth-child(1) { left: 67px; top: 5px; }
+    .orbit-node:nth-child(2) { right: 10px; top: 48px; }
+    .orbit-node:nth-child(3) { right: 28px; bottom: 19px; }
+    .orbit-node:nth-child(4) { left: 28px; bottom: 19px; }
+    .orbit-node:nth-child(5) { left: 10px; top: 48px; }
+
+    .tabs,
+    .legacy-panel {
+      display: none;
+    }
+
+    .premium-control-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .action-button {
+      padding: 0 13px;
+      color: var(--champagne);
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+
+    .mobile-drawer,
+    .drawer-scrim {
+      display: none;
+    }
+
+    .drawer-toggle {
+      position: fixed;
+      width: 1px;
+      height: 1px;
+      opacity: 0;
+      pointer-events: none;
+    }
+
+    .neural-line {
+      stroke-dasharray: 9 34;
+      stroke-dashoffset: 0;
+      animation: neuralPulse 8s linear infinite;
+    }
+
+    .neural-line.delay-a { animation-delay: -2s; }
+    .neural-line.delay-b { animation-delay: -4.4s; }
+    .neural-node {
+      animation: nodeGlow 7s ease-in-out infinite;
+    }
+    .neural-node.delay-a { animation-delay: -2.8s; }
+    .neural-node.delay-b { animation-delay: -5.2s; }
+
+    @keyframes neuralPulse {
+      0% {
+        stroke-dashoffset: 0;
+        opacity: 0.28;
+      }
+      35% {
+        opacity: 0.72;
+      }
+      100% {
+        stroke-dashoffset: -86;
+        opacity: 0.3;
+      }
+    }
+
+    @keyframes nodeGlow {
+      0%, 100% {
+        opacity: 0.42;
+        filter: drop-shadow(0 0 1px rgba(215, 168, 77, 0.18));
+      }
+      48% {
+        opacity: 1;
+        filter: drop-shadow(0 0 7px rgba(215, 168, 77, 0.52));
+      }
     }
 
     @media (max-width: 1180px) {
-      .executive-os {
-        grid-template-columns: minmax(0, 1fr);
-        min-height: auto;
+      .office {
+        grid-template-columns: 220px minmax(0, 1fr);
       }
 
-      .executive-rail {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        order: 2;
-      }
-
-      .chat-stage {
-        order: 1;
-      }
-
-      .signal-grid {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+      .context-panel {
+        grid-column: 1 / -1;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
       }
     }
 
-    @media (max-width: 720px) {
-      .shell {
-        padding: 16px 12px 28px;
+    @media (max-width: 760px) {
+      .app-shell {
+        padding: 12px 10px 20px;
       }
 
       .topbar {
-        align-items: stretch;
-        flex-direction: column;
+        min-height: 58px;
       }
 
-      .auth-control {
-        width: 100%;
+      .mobile-menu-button {
+        display: flex;
       }
 
-      .status-pill {
-        max-width: 100%;
+      .brand-icon,
+      .brand-icon svg {
+        width: 44px;
+        height: 44px;
       }
 
-      .executive-os {
+      .brand-copy strong {
+        font-size: 1.3rem;
+        letter-spacing: 0.2em;
+      }
+
+      .brand-copy span {
+        font-size: 0.58rem;
+        letter-spacing: 0.24em;
+      }
+
+      .top-actions .auth-control,
+      .top-actions .runtime-pill {
+        display: none;
+      }
+
+      .office {
+        display: block;
+        min-height: auto;
+        padding-top: 10px;
+      }
+
+      .sidebar,
+      .context-panel {
+        display: none;
+      }
+
+      .chat-center {
+        min-height: calc(100vh - 86px);
+        grid-template-rows: auto minmax(360px, 1fr) auto auto;
+        gap: 13px;
+        padding: 16px;
+      }
+
+      .chat-header {
         gap: 12px;
       }
 
-      .executive-rail {
-        grid-template-columns: 1fr;
+      .hero-icon,
+      .hero-icon svg {
+        width: 64px;
+        height: 82px;
       }
 
-      .chat-stage {
-        grid-template-rows: auto minmax(360px, 58vh) auto auto;
-        padding: 18px;
+      h1 {
+        font-size: clamp(2.15rem, 12vw, 3.35rem);
       }
 
-      .human-cabin-header {
-        gap: 18px;
-      }
-
-      .chat-title h1 {
-        font-size: clamp(2.05rem, 12vw, 3.4rem);
-      }
-
-      .chat-title p:not(.eyebrow) {
-        font-size: 0.95rem;
+      .subtitle {
+        margin-top: 10px;
+        font-size: 0.93rem;
       }
 
       .chat-log {
         min-height: 360px;
-        padding: 14px;
+        padding: 13px;
       }
 
       .chat-message,
       .chat-message.user,
       .chat-message.system {
         max-width: 100%;
-        font-size: 0.95rem;
+        font-size: 0.94rem;
       }
 
       .chat-form {
-        grid-template-columns: 1fr;
+        grid-template-columns: minmax(0, 1fr) 50px;
       }
 
-      .chat-form .button {
-        width: 100%;
+      .send-button {
+        width: 50px;
       }
 
-      .signal-grid {
-        grid-template-columns: 1fr;
+      .mobile-drawer,
+      .drawer-scrim {
+        display: block;
       }
 
-      .command-row span,
-      .tab {
-        width: auto;
-        text-align: left;
+      .drawer-scrim {
+        position: fixed;
+        inset: 0;
+        z-index: 40;
+        pointer-events: none;
+        background: rgba(0, 0, 0, 0);
+        transition: background 180ms ease;
+      }
+
+      .mobile-drawer {
+        position: fixed;
+        top: 0;
+        bottom: 0;
+        left: 10px;
+        z-index: 50;
+        width: min(328px, calc(100vw - 38px));
+        overflow-y: auto;
+        padding: 16px;
+        opacity: 0;
+        pointer-events: none;
+        transform: none;
+        visibility: hidden;
+        transition: opacity 180ms ease, visibility 180ms ease;
+      }
+
+      body.drawer-open {
+        overflow: hidden;
+      }
+
+      body.drawer-open .drawer-scrim,
+      .drawer-scrim.is-open,
+      .drawer-toggle:checked ~ .drawer-scrim {
+        pointer-events: auto;
+        background: rgba(0, 0, 0, 0.52);
+      }
+
+      body.drawer-open .mobile-drawer,
+      .mobile-drawer.is-open,
+      .drawer-toggle:checked ~ .mobile-drawer {
+        left: 10px !important;
+        opacity: 1 !important;
+        pointer-events: auto !important;
+        transform: none !important;
+        visibility: visible !important;
       }
     }
   </style>
 </head>
 <body>
-  <main class="shell">
+  <input class="drawer-toggle" id="drawerToggle" type="checkbox" aria-hidden="true" tabindex="-1" />
+  <main class="app-shell">
     <header class="topbar">
+      <label class="mobile-menu-button" id="menuButton" for="drawerToggle" role="button" aria-label="Abrir menu" aria-controls="mobileDrawer">
+        <span></span>
+      </label>
       <div class="brand">
-        <div class="mark">CD</div>
-        <div>
-          <strong>Centro de Direccion</strong>
-          <span>Cerebro Executive Cognitive Operational System</span>
+        <div class="brand-icon" aria-hidden="true"></div>
+        <div class="brand-copy">
+          <strong>CEREBRO</strong>
+          <span>Chief of Staff</span>
         </div>
       </div>
-      <div class="auth-control">
-        <input id="authTokenInput" type="password" autocomplete="off" placeholder="Bearer token" />
-        <button id="authSaveButton" type="button">Set</button>
+      <div class="top-actions">
+        <div class="auth-control">
+          <input id="authTokenInput" type="password" autocomplete="off" placeholder="Bearer token" />
+          <button id="authSaveButton" type="button">Set</button>
+        </div>
+        <div class="runtime-pill" id="runtimeStatus">sincronizando</div>
       </div>
-      <div class="status-pill" id="runtimeStatus">runtime loading</div>
     </header>
 
-    <section class="executive-os" aria-label="CEREBRO Human Cabin Premium">
-      <aside class="executive-rail" aria-label="Contexto ejecutivo">
-        <article class="executive-card primary-context">
-        <p class="executive-label">Human Cabin</p>
-        <h2>Direccion estrategica continua</h2>
-        <p class="executive-intro">CEREBRO mantiene el contexto de decisiones, prioridades y entregables para conversaciones largas sin fatiga visual.</p>
-        <p>Habla en español, recuerda decisiones, protege el foco y genera entregables visibles sin romper la trazabilidad operacional.</p>
-        <div class="executive-meta">
-          <span>chat natural activo</span>
-          <span>memoria persistente</span>
-          <span>entregables visibles</span>
-          <span id="certificationBadge">verificando estado</span>
+    <section class="office" aria-label="Despacho privado del Chief of Staff">
+      <aside class="sidebar" aria-label="Navegacion principal">
+        <div class="sidebar-brand">
+          <div class="brand-icon" aria-hidden="true"></div>
+          <div>
+            <strong>CEREBRO</strong>
+            <span>Chief of Staff</span>
+          </div>
         </div>
-        </article>
-        <article class="executive-card">
-          <p class="executive-label">Memoria ejecutiva</p>
-          <div id="memoryPanel"><p>Sincronizando memoria persistente...</p></div>
-        </article>
-        <article class="executive-card">
-          <p class="executive-label">Prioridades activas</p>
-          <div id="priorityPanel"><p>Preparando prioridades...</p></div>
-        </article>
+        <nav>
+          <ul class="nav-list">
+            <li><a class="active" href="#chat"><svg viewBox="0 0 24 24" fill="none"><path d="M5 6.8A3.8 3.8 0 0 1 8.8 3h6.4A3.8 3.8 0 0 1 19 6.8v4.5a3.8 3.8 0 0 1-3.8 3.8h-2.5L8 19v-3.9A3.8 3.8 0 0 1 5 11.3V6.8Z" stroke="currentColor" stroke-width="1.5"/></svg>Conversación</a></li>
+            <li><a href="#memory"><svg viewBox="0 0 24 24" fill="none"><path d="M8 4h8a2 2 0 0 1 2 2v14l-6-3-6 3V6a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.5"/></svg>Memoria Ejecutiva</a></li>
+            <li><a href="#priorities"><svg viewBox="0 0 24 24" fill="none"><path d="m5 12 4 4L19 6" stroke="currentColor" stroke-width="1.6"/><path d="M5 19h14" stroke="currentColor" stroke-width="1.2"/></svg>Prioridades</a></li>
+            <li><a href="#projects"><svg viewBox="0 0 24 24" fill="none"><path d="M4 7h7l2 2h7v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7Z" stroke="currentColor" stroke-width="1.5"/></svg>Proyectos</a></li>
+            <li><a href="#deliverables"><svg viewBox="0 0 24 24" fill="none"><path d="M7 3h7l4 4v14H7V3Z" stroke="currentColor" stroke-width="1.5"/><path d="M14 3v5h5" stroke="currentColor" stroke-width="1.5"/></svg>Entregables</a></li>
+            <li><a href="#analysis"><svg viewBox="0 0 24 24" fill="none"><path d="M5 19V9m7 10V5m7 14v-7" stroke="currentColor" stroke-width="1.5"/></svg>Análisis</a></li>
+            <li><a href="#ecosystem"><svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="2" stroke="currentColor" stroke-width="1.4"/><path d="M12 4v4m0 8v4m8-8h-4M8 12H4m13.7-5.7-2.8 2.8M9.1 14.9l-2.8 2.8m11.4 0-2.8-2.8M9.1 9.1 6.3 6.3" stroke="currentColor" stroke-width="1.3"/></svg>Ecosistema</a></li>
+          </ul>
+        </nav>
+        <div class="profile-strip">
+          <div class="profile-avatar"></div>
+          <div>
+            <strong>CEO</strong><br />
+            <span>Modo Ejecutivo</span>
+          </div>
+        </div>
       </aside>
 
-      <section class="chat-stage" aria-label="Chat principal de CEREBRO">
-        <div class="human-cabin-header">
+      <section class="chat-center" id="chat" aria-label="Conversacion con CEREBRO">
+        <div class="chat-header">
           <div class="chat-title">
-            <p class="eyebrow">CEREBRO habla</p>
-            <h1>CEREBRO dirige el ecosistema contigo.</h1>
-            <p>Un Chief of Staff ejecutivo para pensar, priorizar y convertir decisiones en entregables visibles.</p>
+            <p class="eyebrow">La segunda mente más importante de la organización</p>
+            <h1>CEREBRO</h1>
+            <p class="subtitle">Chief of Staff ejecutivo para convertir contexto, prioridades y decisiones en direccion clara.</p>
           </div>
-          <div class="avatar-core">C</div>
+          <div class="hero-icon" aria-hidden="true"></div>
         </div>
+
         <div class="chat-log" id="chatLog" aria-live="polite">
-          <div class="chat-message system">CEO, estoy listo. Puedo resumir el ecosistema, detectar bloqueos, priorizar y preparar entregables con memoria persistente.</div>
+          <div class="chat-message system">CEO, estoy listo. Puedo ordenar prioridades, resumir el ecosistema y convertir decisiones en entregables visibles.</div>
         </div>
+
         <form class="chat-form" id="chatForm">
           <textarea id="chatInput" rows="2" autocomplete="off" placeholder="Habla con CEREBRO como con tu Chief of Staff..."></textarea>
-          <button class="button" type="submit">Enviar</button>
+          <button class="send-button" type="submit" aria-label="Enviar mensaje">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true">
+              <path d="M5 12h13m0 0-5-5m5 5-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
         </form>
-        <div class="executive-meta" id="ecosystemSummary"></div>
+
+        <div class="summary-chips" id="ecosystemSummary"></div>
       </section>
 
-      <aside class="executive-rail" aria-label="Trabajo activo">
-        <article class="executive-card">
-          <p class="executive-label">Proyectos activos</p>
+      <aside class="context-panel" aria-label="Contexto ejecutivo">
+        <article class="drawer-panel" id="memory">
+          <p class="eyebrow">Memoria Ejecutiva</p>
+          <div id="memoryPanel"><p>Sincronizando memoria persistente...</p></div>
+        </article>
+        <article class="drawer-panel" id="priorities">
+          <p class="eyebrow">Prioridades</p>
+          <div id="priorityPanel"><p>Preparando prioridades...</p></div>
+        </article>
+        <article class="drawer-panel" id="projects">
+          <p class="eyebrow">Proyectos</p>
           <div id="projectPanel"><p>Sincronizando proyectos...</p></div>
         </article>
-        <article class="executive-card">
-          <p class="executive-label">Entregables</p>
-          <div class="quiet-list" id="humanDeliverables"></div>
+        <article class="drawer-panel" id="ecosystem">
+          <p class="eyebrow">Estado del Ecosistema</p>
+          <div class="ecosystem-orbit" aria-hidden="true">
+            <div class="orbit">
+              <span class="orbit-node">1</span>
+              <span class="orbit-node">2</span>
+              <span class="orbit-node">3</span>
+              <span class="orbit-node">4</span>
+              <span class="orbit-node">5</span>
+            </div>
+          </div>
+          <p id="ecosystemState">Todo sincronizando.</p>
         </article>
-        <article class="executive-card">
-          <p class="executive-label">Estado discreto</p>
-          <ul>
-            <li>Provider: <span id="providerMiniSignal">checking</span></li>
-            <li>Memoria: <span id="memoryMiniSignal">checking</span></li>
-            <li>Runtime: <span id="runtimeMiniSignal">checking</span></li>
-          </ul>
+        <article class="drawer-panel" id="deliverables">
+          <p class="eyebrow">Entregables</p>
+          <div id="humanDeliverables"><p>Aun no hay entregables generados desde esta cabina.</p></div>
         </article>
       </aside>
     </section>
-
-    <section class="signal-panel dashboard-band">
-      <div>
-        <p class="eyebrow">Sistema de respaldo</p>
-        <h2>Senales operativas discretas</h2>
-        <p style="color: var(--muted)">La cabina conserva gobierno, memoria, trazas, automatizacion y confianza operacional sin competir con la conversacion.</p>
-      </div>
-      <div class="signal-grid">
-        <div class="signal"><span>Governance</span><strong id="govSignal">active</strong></div>
-        <div class="signal"><span>Provider</span><strong id="providerSignal">checking</strong></div>
-        <div class="signal"><span>Memory</span><strong id="memorySignal">active</strong></div>
-        <div class="signal"><span>Memory Integrity</span><strong id="memoryIntegritySignal">checking</strong></div>
-        <div class="signal"><span>Trace</span><strong id="traceSignal">active</strong></div>
-        <div class="signal"><span>Workflow</span><strong id="workflowSignal">checking</strong></div>
-        <div class="signal"><span>Automation</span><strong id="automationSignal">checking</strong></div>
-        <div class="signal"><span>Degraded Ops</span><strong id="degradedSignal">checking</strong></div>
-        <div class="signal"><span>AI Coordination</span><strong id="aiSignal">checking</strong></div>
-        <div class="signal"><span>Deploy Trust</span><strong id="deploySignal">checking</strong></div>
-        <div class="signal"><span>Operational Trust</span><strong id="trustSignal">checking</strong></div>
-        <div class="signal"><span>Freeze Baseline</span><strong id="freezeSignal">checking</strong></div>
-        <div class="signal"><span>Final Class</span><strong id="finalClassSignal">checking</strong></div>
-        <div class="signal"><span>Auth</span><strong id="authSignal">checking</strong></div>
-        <div class="signal"><span>Certification</span><strong id="certSignal">not ready</strong></div>
-      </div>
-    </section>
-
-    <nav class="tabs" aria-label="Cerebro sections">
-      <button class="tab active" data-tab="activar">Activate</button>
-      <button class="tab" data-tab="resultado">Results</button>
-      <button class="tab" data-tab="aprender">Learning</button>
-      <button class="tab" data-tab="historial">History</button>
-      <button class="tab" data-tab="workflows">Workflows</button>
-      <button class="tab" data-tab="degraded">Degraded</button>
-      <button class="tab" data-tab="memory">Memory</button>
-      <button class="tab" data-tab="governance">Governance</button>
-      <button class="tab" data-tab="final">Final</button>
-      <button class="tab" data-tab="trazas">Trace</button>
-    </nav>
-
-    <section class="panel active" id="panel-activar">
-      <div class="form-grid">
-        <div>
-          <p class="eyebrow">Proposal evaluation</p>
-          <h2>Submit a reversible decision first.</h2>
-          <p style="color: var(--muted)">If the proposal implies production, deletion, secrets, irreversible changes, or governance bypass, Cerebro blocks or requests CEO approval before provider execution.</p>
-        </div>
-        <div>
-          <div class="field">
-            <label for="propuesta">Proposal</label>
-            <textarea id="propuesta" rows="4" placeholder="Evaluate a low-risk commercial action..."></textarea>
-          </div>
-          <div class="field">
-            <label for="contexto">Context</label>
-            <input id="contexto" placeholder="Budget, constraints, deadline" />
-          </div>
-          <button class="button" id="activateButton">Evaluate</button>
-        </div>
-      </div>
-      <div class="result" id="activateResult">Awaiting proposal.</div>
-    </section>
-
-    <section class="panel" id="panel-resultado">
-      <p class="eyebrow">Operational results</p>
-      <h2>Register outcome evidence.</h2>
-      <div class="form-grid">
-        <div>
-          <div class="field"><label for="rAccion">Action</label><input id="rAccion" /></div>
-          <div class="field"><label for="rNotas">Notes</label><input id="rNotas" /></div>
-        </div>
-        <div>
-          <div class="field"><label for="rResultado">Result</label><select id="rResultado"><option>impacto medio</option><option>alto impacto</option><option>bajo impacto</option><option>fallido</option></select></div>
-          <div class="field"><label for="rIngresos">Revenue</label><input id="rIngresos" type="number" value="0" /></div>
-          <button class="button" id="resultButton">Register</button>
-        </div>
-      </div>
-      <div class="quiet-list" id="resultList"></div>
-    </section>
-
-    <section class="panel" id="panel-aprender">
-      <p class="eyebrow">Learning loop</p>
-      <h2>Learn only from registered evidence.</h2>
-      <button class="button secondary" id="learnButton">Run learning check</button>
-      <div class="result" id="learnResult">Learning requires at least two registered results.</div>
-    </section>
-
-    <section class="panel" id="panel-historial">
-      <p class="eyebrow">Decision history</p>
-      <h2>Recent decisions.</h2>
-      <div class="quiet-list" id="historyList"></div>
-    </section>
-
-    <section class="panel" id="panel-workflows">
-      <p class="eyebrow">Workflow integrity</p>
-      <h2>Execution evidence, retry visibility, fallback state.</h2>
-      <div class="quiet-list" id="workflowSummary"></div>
-      <div class="quiet-list" id="workflowList"></div>
-    </section>
-
-    <section class="panel" id="panel-degraded">
-      <p class="eyebrow">Degraded operations</p>
-      <h2>Limited automation state without fake continuity.</h2>
-      <div class="quiet-list" id="degradedSummary"></div>
-      <div class="quiet-list" id="fallbackList"></div>
-    </section>
-
-    <section class="panel" id="panel-memory">
-      <p class="eyebrow">Operational memory</p>
-      <h2>Memory and AI coordination integrity.</h2>
-      <div class="quiet-list" id="memoryIntegritySummary"></div>
-      <div class="quiet-list" id="aiIntegritySummary"></div>
-    </section>
-
-    <section class="panel" id="panel-governance">
-      <p class="eyebrow">Automation governance</p>
-      <h2>Deploy integrity, trust, and freeze baseline.</h2>
-      <div class="quiet-list" id="deployIntegritySummary"></div>
-      <div class="quiet-list" id="operationalTrustSummary"></div>
-      <div class="quiet-list" id="automationGovernanceSummary"></div>
-    </section>
-
-    <section class="panel" id="panel-final">
-      <p class="eyebrow">Final re-audit</p>
-      <h2>Honest automation foundation validation.</h2>
-      <div class="quiet-list" id="finalClassificationSummary"></div>
-      <div class="quiet-list" id="finalBlockersSummary"></div>
-      <div class="quiet-list" id="finalCabinSummary"></div>
-    </section>
-
-    <section class="panel" id="panel-trazas">
-      <p class="eyebrow">Decision traceability</p>
-      <h2>Governance evidence.</h2>
-      <div class="quiet-list" id="traceList"></div>
-    </section>
-
-    <p class="footer">Cerebro Phase 2 governed prototype. No irreversible action executes without CEO approval.</p>
   </main>
 
+  <label class="drawer-scrim" id="drawerScrim" for="drawerToggle" aria-hidden="true"></label>
+  <aside class="mobile-drawer" id="mobileDrawer" aria-label="Menu mobile" aria-hidden="true">
+    <div class="sidebar-brand">
+      <div class="brand-icon" aria-hidden="true"></div>
+      <div>
+        <strong>CEREBRO</strong>
+        <span>Chief of Staff</span>
+      </div>
+    </div>
+    <ul class="nav-list">
+      <li><a href="#chat" data-close-drawer>Conversación</a></li>
+      <li><a href="#memory" data-close-drawer>Memoria Ejecutiva</a></li>
+      <li><a href="#priorities" data-close-drawer>Prioridades</a></li>
+      <li><a href="#projects" data-close-drawer>Proyectos</a></li>
+      <li><a href="#deliverables" data-close-drawer>Entregables</a></li>
+      <li><a href="#analysis" data-close-drawer>Análisis</a></li>
+      <li><a href="#ecosystem" data-close-drawer>Ecosistema</a></li>
+    </ul>
+    <article class="drawer-panel">
+      <p class="eyebrow">Estado</p>
+      <p>Provider: <span id="providerMiniSignal">checking</span></p>
+      <p>Memoria: <span id="memoryMiniSignal">checking</span></p>
+      <p>Runtime: <span id="runtimeMiniSignal">checking</span></p>
+    </article>
+  </aside>
+
+  <template id="cerebroIconTemplate">
+    <svg class="cerebro-icon" viewBox="0 0 220 260" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <defs>
+        <linearGradient id="skinGold" x1="44" y1="34" x2="178" y2="230" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#f3dca8"/>
+          <stop offset="0.22" stop-color="#8d6a38"/>
+          <stop offset="0.56" stop-color="#1b1a17"/>
+          <stop offset="1" stop-color="#05070a"/>
+        </linearGradient>
+        <linearGradient id="neuralGold" x1="66" y1="55" x2="166" y2="178" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#fff0bb"/>
+          <stop offset="0.52" stop-color="#d7a84d"/>
+          <stop offset="1" stop-color="#8d5a1d"/>
+        </linearGradient>
+      </defs>
+      <path d="M150 236c-4-29 10-55 8-79-3-36-29-62-66-61-25 1-44 15-52 36-9 23-3 45 14 61 7 6 7 17 3 26-4 10-7 20-5 28h98Z" fill="url(#skinGold)" opacity="0.62"/>
+      <path d="M137 47c31 8 50 33 50 65 0 25-10 45-29 60-6 5-8 12-6 19l10 45H92c-4-19 2-37 8-52 4-11 1-22-7-30-14-13-20-29-17-47 5-38 30-67 61-60Z" fill="#0b0d10" stroke="#b88a45" stroke-width="1.2" opacity="0.95"/>
+      <path d="M94 62c-32 10-51 33-57 66-3 17-1 29 6 39 7 11 18 16 32 17 16 1 28-5 38-17 8-10 12-22 14-37 3-25-5-50-33-68Z" fill="url(#skinGold)" opacity="0.86"/>
+      <path d="M47 130c13-4 24-4 35 3" stroke="#16120d" stroke-width="3" stroke-linecap="round" opacity="0.75"/>
+      <path d="M47 152c9 3 18 3 29 0" stroke="#c08f45" stroke-width="1.2" stroke-linecap="round" opacity="0.75"/>
+      <path d="M72 115c-10 1-17 5-22 12" stroke="#f0d49a" stroke-width="1.1" stroke-linecap="round" opacity="0.52"/>
+      <path d="M82 185c-9 5-17 16-19 28 12 2 25-2 34-10 8-8 11-18 9-29-8 1-16 4-24 11Z" fill="#100d0a" stroke="#b88a45" stroke-width="1" opacity="0.9"/>
+      <path d="M55 208c20-1 37-13 51-34" stroke="#e7bd68" stroke-width="2.2" stroke-linecap="round" opacity="0.65"/>
+      <path d="M94 196c8 10 11 24 8 41" stroke="#2a2216" stroke-width="5" stroke-linecap="round" opacity="0.8"/>
+      <path class="neural-line" d="M104 73h28l10 12h19" stroke="url(#neuralGold)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+      <path class="neural-line delay-a" d="M99 94h22l9 10v18l13 10h19" stroke="url(#neuralGold)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path class="neural-line delay-b" d="M114 135h20l10 13v20l13 12" stroke="url(#neuralGold)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+      <path class="neural-line delay-a" d="M125 64v20l-12 12v20" stroke="url(#neuralGold)" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/>
+      <path class="neural-line delay-b" d="M149 94v27l-12 13" stroke="url(#neuralGold)" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle class="neural-node" cx="104" cy="73" r="2.7" fill="#ffe8a4"/>
+      <circle class="neural-node delay-a" cx="142" cy="85" r="2.4" fill="#d7a84d"/>
+      <circle class="neural-node delay-b" cx="161" cy="85" r="2.2" fill="#f0d49a"/>
+      <circle class="neural-node delay-a" cx="99" cy="94" r="2.4" fill="#e0aa50"/>
+      <circle class="neural-node delay-b" cx="162" cy="132" r="2.5" fill="#ffe8a4"/>
+      <circle class="neural-node" cx="157" cy="180" r="2.4" fill="#d7a84d"/>
+    </svg>
+  </template>
+
   <script>
-    const tabs = document.querySelectorAll(".tab");
     const authStorageKey = "cerebro_auth_token";
-    const protectedEndpointPatterns = [
-      /^\/api\/activar$/,
-      /^\/api\/resultado$/,
-      /^\/api\/aprender$/,
-      /^\/api\/historial$/,
-      /^\/api\/resultados$/,
-      /^\/api\/decision-traces$/,
-      /^\/api\/operational-memory$/,
-      /^\/workflow\/traces$/,
-      /^\/governance\/audit-snapshot$/,
-      /^\/automation\/degradation\/probe$/,
-      /^\/memory\/degradation\/probe$/,
-      /^\/governance\/deploy\/probe$/,
-    ];
-    const storedAuthToken = sessionStorage.getItem(authStorageKey) || "";
     const conversationStorageKey = "cerebro_human_cabin_conversation";
+    const protectedEndpointPatterns = [/^\/api\/activar$/, /^\/api\/resultado$/, /^\/api\/aprender$/];
     let conversationId = localStorage.getItem(conversationStorageKey);
     if (!conversationId) {
       conversationId = `web_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
       localStorage.setItem(conversationStorageKey, conversationId);
     }
-    document.getElementById("authTokenInput").value = storedAuthToken;
-    document.getElementById("authSaveButton").addEventListener("click", () => {
-      const value = document.getElementById("authTokenInput").value.trim();
-      if (value) sessionStorage.setItem(authStorageKey, value);
-      else sessionStorage.removeItem(authStorageKey);
-      loadRuntime().catch(() => {
-        document.getElementById("runtimeStatus").textContent = "runtime unavailable";
+
+    function mountIcons() {
+      const template = document.getElementById("cerebroIconTemplate");
+      document.querySelectorAll(".brand-icon, .hero-icon").forEach((target) => {
+        target.innerHTML = "";
+        target.appendChild(template.content.firstElementChild.cloneNode(true));
       });
-    });
-
-    tabs.forEach((button) => {
-      button.addEventListener("click", () => {
-        tabs.forEach((tab) => tab.classList.toggle("active", tab === button));
-        document.querySelectorAll(".panel").forEach((panel) => panel.classList.remove("active"));
-        document.getElementById(`panel-${button.dataset.tab}`).classList.add("active");
-        if (button.dataset.tab === "historial") loadHistory();
-        if (button.dataset.tab === "resultado") loadResults();
-        if (button.dataset.tab === "workflows") loadWorkflows();
-        if (button.dataset.tab === "degraded") loadDegraded();
-        if (button.dataset.tab === "memory") loadMemoryIntegrity();
-        if (button.dataset.tab === "governance") loadGovernanceTrust();
-        if (button.dataset.tab === "final") loadFinalCertification();
-        if (button.dataset.tab === "trazas") loadTraces();
-      });
-    });
-
-    async function jsonFetch(url, options) {
-      const token = sessionStorage.getItem(authStorageKey);
-      const path = new URL(url, window.location.origin).pathname;
-      const requiresAuth = protectedEndpointPatterns.some((pattern) => pattern.test(path));
-      if (!token && requiresAuth) {
-        return {
-          success: false,
-          http_status: 0,
-          error: "AUTH_REQUIRED",
-          auth_state: "AUTH_REQUIRED",
-          data_state: "AUTH_REQUIRED",
-          message: "Bearer token required before requesting protected Cerebro data.",
-          request_suppressed: true,
-          no_fake_success: true,
-        };
-      }
-      const headers = {
-        ...(options && options.headers ? options.headers : {}),
-        ...(token ? { authorization: `Bearer ${token}` } : {}),
-      };
-      const response = await fetch(url, { ...(options || {}), headers });
-      const data = await response.json().catch(() => ({
-        success: false,
-        error: "INVALID_JSON_RESPONSE",
-        data_state: "DATA_UNAVAILABLE",
-      }));
-      if (!response.ok) {
-        return {
-          success: false,
-          http_status: response.status,
-          error: data.error || "REQUEST_FAILED",
-          auth_state: data.auth_state,
-          data_state: data.data_state || "DATA_UNAVAILABLE",
-          message: data.message || "Request failed.",
-          no_fake_success: true,
-        };
-      }
-      return data;
-    }
-
-    function protectedDataUnavailable(data, label) {
-      if (data && data.success === false && (data.auth_state || data.data_state)) {
-        return `<div class='quiet-item'><strong>${data.auth_state || data.data_state}</strong><br /><small>${label}: ${data.message || data.error || "protected data unavailable"}</small></div>`;
-      }
-      return null;
     }
 
     function escapeHtml(value) {
@@ -1178,83 +1044,106 @@
         .replace(/'/g, "&#039;");
     }
 
+    async function jsonFetch(url, options) {
+      const token = sessionStorage.getItem(authStorageKey);
+      const path = new URL(url, window.location.origin).pathname;
+      const requiresAuth = protectedEndpointPatterns.some((pattern) => pattern.test(path));
+      if (!token && requiresAuth) {
+        return { success: false, error: "AUTH_REQUIRED", message: "Bearer token required." };
+      }
+      const headers = {
+        ...(options && options.headers ? options.headers : {}),
+        ...(token ? { authorization: `Bearer ${token}` } : {}),
+      };
+      const response = await fetch(url, { ...(options || {}), headers });
+      const data = await response.json().catch(() => ({ success: false, error: "INVALID_JSON_RESPONSE" }));
+      if (!response.ok) return { success: false, http_status: response.status, ...data };
+      return data;
+    }
+
+    function renderNumberedList(targetId, items, emptyText) {
+      const target = document.getElementById(targetId);
+      if (!target) return;
+      const list = (items || []).filter(Boolean).slice(0, 5);
+      target.innerHTML = list.length
+        ? `<ul>${list.map((item, index) => `<li data-index="${index + 1}">${escapeHtml(typeof item === "string" ? item : item.name || item.title || item.role || "Activo")}</li>`).join("")}</ul>`
+        : `<p>${escapeHtml(emptyText)}</p>`;
+    }
+
     function addChatMessage(role, content) {
       const log = document.getElementById("chatLog");
       const node = document.createElement("div");
-      node.className = `chat-message ${role === "user" ? "user" : role === "system" ? "system" : ""}`;
+      node.className = `chat-message ${role === "user" ? "user" : role === "system" ? "system" : "assistant"}`;
       node.textContent = content;
       log.appendChild(node);
       log.scrollTop = log.scrollHeight;
     }
 
-    function renderExecutiveList(targetId, items, emptyText) {
-      const target = document.getElementById(targetId);
-      if (!target) return;
-      const list = (items || []).filter(Boolean).slice(0, 5);
-      target.innerHTML = list.length
-        ? `<ul>${list.map((item) => `<li>${escapeHtml(typeof item === "string" ? item : item.name || item.title || item.role || "Elemento activo")}</li>`).join("")}</ul>`
-        : `<p>${escapeHtml(emptyText)}</p>`;
-    }
-
-    function renderExecutiveMemory(snapshot) {
+    function renderMemory(snapshot) {
       const counts = snapshot.counts || {};
       const backend = snapshot.memory_backend || snapshot.memory && snapshot.memory.memory_backend || {};
-      const status = snapshot.memory && snapshot.memory.status ? snapshot.memory.status : "READY";
-      renderExecutiveList("memoryPanel", [
-        `Memoria ${status.toLowerCase()} con ${counts.conversations || 0} conversaciones`,
-        `${counts.decisions || 0} decisiones y ${counts.deliverables || 0} entregables registrados`,
-        backend.persistent ? "Persistencia productiva activa en KV" : "Persistencia pendiente de confirmacion",
+      renderNumberedList("memoryPanel", [
+        `${counts.conversations || 0} conversaciones persistentes`,
+        `${counts.decisions || 0} decisiones trazadas`,
+        `${counts.deliverables || 0} entregables visibles`,
+        backend.persistent ? "KV productivo activo" : "Persistencia en verificacion",
       ], "Memoria ejecutiva sincronizandose.");
     }
 
     function renderDeliverables(items) {
-      const target = document.getElementById("humanDeliverables");
-      const list = items || [];
-      target.innerHTML = list.length
-        ? `<ul>${list.slice(0, 4).map((item) => `<li>${escapeHtml(item.filename || item.title || "Entregable visible")}</li>`).join("")}</ul>`
-        : `<p>Aun no hay entregables generados desde esta cabina.</p>`;
-      return;
-      target.innerHTML = list.length ? `
-        <article class="quiet-item">
-          <strong>Entregables visibles</strong><br />
-          <small>${list.slice(0, 3).map((item) => escapeHtml(item.filename)).join(" · ")}</small>
-        </article>
-      ` : `
-        <article class="quiet-item">
-          <strong>Entregables</strong><br />
-          <small>Aun no hay entregables generados desde esta cabina.</small>
-        </article>
-      `;
+      renderNumberedList("humanDeliverables", (items || []).map((item) => item.filename || item.title), "Aun no hay entregables generados desde esta cabina.");
     }
 
     function renderEcosystemSummary(snapshot) {
       const target = document.getElementById("ecosystemSummary");
-      if (!snapshot) return;
-      const apps = (snapshot.apps || []).slice(0, 5).map((app) => app.name).join(", ");
-      const blockers = (snapshot.blockers || []).length;
       const counts = snapshot.counts || {};
-      const localAgent = snapshot.local_agent || {};
-      const agentCounts = localAgent.agents || {};
-      const taskCounts = localAgent.tasks || {};
+      const apps = (snapshot.apps || []).map((app) => app.name).slice(0, 5).join(", ");
+      const blockers = (snapshot.blockers || []).length;
       target.innerHTML = `
-        <span>${escapeHtml(apps || "Sin apps registradas")}</span>
+        <span>${escapeHtml(apps || "Ecosistema en sincronizacion")}</span>
         <span>${counts.conversations || 0} conversaciones</span>
         <span>${counts.deliverables || 0} entregables</span>
-        <span>${taskCounts.total || 0} tareas</span>
-        <span>${agentCounts.total || 0} agentes</span>
         <span>${blockers} bloqueos</span>
       `;
-      renderExecutiveMemory(snapshot);
-      renderExecutiveList("priorityPanel", snapshot.priorities || [], "Sin prioridades activas verificadas.");
-      renderExecutiveList("projectPanel", snapshot.projects || [], "Sin proyectos activos verificados.");
-      return;
-      target.innerHTML = `
-        <article class="quiet-item">
-          <strong>${escapeHtml(apps || "Sin apps registradas")}</strong><br />
-          <small>decisiones ${counts.decisions || 0} · conversaciones ${counts.conversations || 0} · entregables ${counts.deliverables || 0} · tareas ${taskCounts.total || 0} · agentes ${agentCounts.total || 0} · bloqueos ${blockers}</small>
-        </article>
-      `;
+      renderMemory(snapshot);
+      renderNumberedList("priorityPanel", snapshot.priorities || [], "Sin prioridades activas verificadas.");
+      renderNumberedList("projectPanel", snapshot.projects || [], "Sin proyectos activos verificados.");
+      renderDeliverables(snapshot.recent_deliverables || []);
+      document.getElementById("ecosystemState").textContent = blockers ? `${blockers} bloqueos bajo observacion.` : "Todo en sincronizacion.";
     }
+
+    async function loadConversation() {
+      const data = await jsonFetch(`/api/conversations/${conversationId}`);
+      const log = document.getElementById("chatLog");
+      if (data.messages && data.messages.length) {
+        log.innerHTML = "";
+        data.messages.slice(-18).forEach((message) => addChatMessage(message.role, message.content));
+      }
+    }
+
+    async function loadRuntime() {
+      const runtime = await jsonFetch("/runtime/status");
+      document.getElementById("runtimeStatus").textContent = runtime.status || "runtime disponible";
+      document.getElementById("providerMiniSignal").textContent = runtime.provider_ready ? "ready" : "not ready";
+      document.getElementById("memoryMiniSignal").textContent = runtime.storage && runtime.storage.enabled ? "persistent" : "local";
+      document.getElementById("runtimeMiniSignal").textContent = runtime.status || "unknown";
+    }
+
+    async function loadHumanCabin() {
+      const state = await jsonFetch("/api/human-cabin/state");
+      if (state.success) renderEcosystemSummary(state.snapshot);
+      await loadConversation();
+    }
+
+    document.getElementById("authTokenInput").value = sessionStorage.getItem(authStorageKey) || "";
+    document.getElementById("authSaveButton").addEventListener("click", () => {
+      const value = document.getElementById("authTokenInput").value.trim();
+      if (value) sessionStorage.setItem(authStorageKey, value);
+      else sessionStorage.removeItem(authStorageKey);
+      loadRuntime().catch(() => {
+        document.getElementById("runtimeStatus").textContent = "runtime no disponible";
+      });
+    });
 
     document.getElementById("chatInput").addEventListener("keydown", (event) => {
       if (event.key === "Enter" && !event.shiftKey) {
@@ -1262,24 +1151,6 @@
         document.getElementById("chatForm").requestSubmit();
       }
     });
-
-    async function loadConversation() {
-      const data = await jsonFetch(`/api/conversations/${conversationId}`);
-      const log = document.getElementById("chatLog");
-      if (data.messages && data.messages.length) {
-        log.innerHTML = "";
-        data.messages.slice(-20).forEach((message) => addChatMessage(message.role, message.content));
-      }
-    }
-
-    async function loadHumanCabin() {
-      const data = await jsonFetch("/api/human-cabin/state");
-      if (data.success) {
-        renderEcosystemSummary(data.snapshot);
-        renderDeliverables(data.snapshot.recent_deliverables || []);
-      }
-      await loadConversation();
-    }
 
     document.getElementById("chatForm").addEventListener("submit", async (event) => {
       event.preventDefault();
@@ -1294,7 +1165,7 @@
         const response = await fetch("/api/chat", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ message, session_id: conversationId, context: { origin: "human_cabin_web" } }),
+          body: JSON.stringify({ message, session_id: conversationId, context: { origin: "chief_of_staff_os" } }),
         });
         const data = await response.json();
         const thinking = document.querySelector("#chatLog .chat-message.system:last-child");
@@ -1304,12 +1175,6 @@
           localStorage.setItem(conversationStorageKey, conversationId);
         }
         addChatMessage("assistant", data.reply || "CEO, no recibi una respuesta util.");
-        if (data.deliverable) {
-          renderDeliverables([data.deliverable]);
-        } else {
-          const deliverables = await jsonFetch("/api/deliverables");
-          renderDeliverables(deliverables.deliverables || []);
-        }
         const state = await jsonFetch("/api/human-cabin/state");
         if (state.success) renderEcosystemSummary(state.snapshot);
       } catch (error) {
@@ -1320,282 +1185,30 @@
       }
     });
 
-    async function loadRuntime() {
-      const [
-        runtime,
-        readiness,
-        continuity,
-        automation,
-        degraded,
-        memoryIntegrity,
-        aiIntegrity,
-        deploy,
-        trust,
-        governance,
-        finalCertification,
-        auth,
-      ] = await Promise.all([
-        jsonFetch("/runtime/status"),
-        jsonFetch("/runtime/enterprise-readiness"),
-        jsonFetch("/runtime/continuity"),
-        jsonFetch("/automation/survivability"),
-        jsonFetch("/automation/degraded-operations"),
-        jsonFetch("/memory/integrity"),
-        jsonFetch("/ai/coordination/integrity"),
-        jsonFetch("/deploy/integrity"),
-        jsonFetch("/operational/trust"),
-        jsonFetch("/governance/automation"),
-        jsonFetch("/certification/automation-foundation"),
-        jsonFetch("/auth/status"),
-      ]);
-      document.getElementById("runtimeStatus").textContent = runtime.status;
-      document.getElementById("providerSignal").textContent = runtime.provider_ready ? "ready" : "not ready";
-      document.getElementById("memorySignal").textContent = runtime.operational_memory ? "active" : "missing";
-      document.getElementById("memoryIntegritySignal").textContent = memoryIntegrity.status || "unknown";
-      document.getElementById("traceSignal").textContent = runtime.decision_trace ? "active" : "missing";
-      document.getElementById("workflowSignal").textContent = continuity.workflow_continuity || "unknown";
-      document.getElementById("automationSignal").textContent = automation.status || "unknown";
-      document.getElementById("degradedSignal").textContent = degraded.status || "unknown";
-      document.getElementById("aiSignal").textContent = aiIntegrity.status || continuity.ai_orchestration_continuity || "unknown";
-      document.getElementById("deploySignal").textContent = deploy.classification || "unknown";
-      document.getElementById("trustSignal").textContent = trust.status || "unknown";
-      document.getElementById("freezeSignal").textContent = governance.governance_classification || "unknown";
-      document.getElementById("finalClassSignal").textContent = finalCertification.classification || "unknown";
-      document.getElementById("authSignal").textContent = auth.status || continuity.auth_continuity || "unknown";
-      document.getElementById("certSignal").textContent = readiness.certification.enterprise_ready ? "ready" : "not ready";
-      document.getElementById("certificationBadge").textContent = finalCertification.classification || readiness.certification.classification;
-      document.getElementById("providerMiniSignal").textContent = runtime.provider_ready ? "ready" : "not ready";
-      document.getElementById("memoryMiniSignal").textContent = runtime.storage && runtime.storage.enabled ? "persistent" : "local";
-      document.getElementById("runtimeMiniSignal").textContent = runtime.status || "unknown";
-    }
+    const drawerToggle = document.getElementById("drawerToggle");
+    const mobileDrawer = document.getElementById("mobileDrawer");
+    const drawerScrim = document.getElementById("drawerScrim");
+    const syncDrawer = () => {
+      const isOpen = drawerToggle.checked;
+      document.body.classList.toggle("drawer-open", isOpen);
+      mobileDrawer.classList.toggle("is-open", isOpen);
+      drawerScrim.classList.toggle("is-open", isOpen);
+      mobileDrawer.setAttribute("aria-hidden", isOpen ? "false" : "true");
+    };
+    const closeDrawer = () => {
+      drawerToggle.checked = false;
+      syncDrawer();
+    };
+    drawerToggle.addEventListener("change", syncDrawer);
+    document.querySelectorAll("[data-close-drawer]").forEach((item) => item.addEventListener("click", closeDrawer));
 
-    document.getElementById("activateButton").addEventListener("click", async () => {
-      const propuesta = document.getElementById("propuesta").value.trim();
-      const contexto = document.getElementById("contexto").value.trim();
-      if (!propuesta) return;
-      document.getElementById("activateResult").textContent = "Evaluating governance...";
-      const data = await jsonFetch("/api/activar", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ propuesta, contexto })
-      });
-      document.getElementById("activateResult").textContent = JSON.stringify({
-        success: data.success,
-        error: data.error,
-        governance: data.governance,
-        decision: data.decision,
-        decision_trace_id: data.decision_trace && data.decision_trace.decision_id
-      }, null, 2);
-    });
-
-    document.getElementById("resultButton").addEventListener("click", async () => {
-      const data = await jsonFetch("/api/resultado", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({
-          accion: document.getElementById("rAccion").value,
-          resultado: document.getElementById("rResultado").value,
-          ingresos: document.getElementById("rIngresos").value,
-          notas: document.getElementById("rNotas").value
-        })
-      });
-      await loadResults();
-      document.getElementById("rAccion").value = "";
-      document.getElementById("rNotas").value = "";
-      if (!data.success) alert(data.error || "blocked");
-    });
-
-    document.getElementById("learnButton").addEventListener("click", async () => {
-      document.getElementById("learnResult").textContent = "Checking evidence...";
-      const data = await jsonFetch("/api/aprender", { method: "POST" });
-      document.getElementById("learnResult").textContent = JSON.stringify(data, null, 2);
-    });
-
-    async function loadResults() {
-      const data = await jsonFetch("/api/resultados");
-      const list = document.getElementById("resultList");
-      const unavailable = protectedDataUnavailable(data, "results");
-      if (unavailable) {
-        list.innerHTML = unavailable;
-        return;
-      }
-      list.innerHTML = (data.registros || []).slice(0, 8).map((item) => `
-        <article class="quiet-item">
-          <strong>${item.accion || "Untitled action"}</strong><br />
-          <small>${item.resultado || "unknown"} · revenue ${item.ingresos || 0} · ${item.fecha || ""}</small>
-        </article>
-      `).join("") || "<div class='quiet-item'>No results registered.</div>";
-    }
-
-    async function loadHistory() {
-      const data = await jsonFetch("/api/historial");
-      const list = document.getElementById("historyList");
-      const unavailable = protectedDataUnavailable(data, "history");
-      if (unavailable) {
-        list.innerHTML = unavailable;
-        return;
-      }
-      list.innerHTML = (data.historial || []).slice(0, 8).map((item) => `
-        <article class="quiet-item">
-          <strong>${item.propuesta || "Untitled proposal"}</strong><br />
-          <small>${item.decision && item.decision.decision ? item.decision.decision : "pending"} · ${item.fecha || ""}</small>
-        </article>
-      `).join("") || "<div class='quiet-item'>No history yet.</div>";
-    }
-
-    async function loadTraces() {
-      const data = await jsonFetch("/api/decision-traces");
-      const list = document.getElementById("traceList");
-      const unavailable = protectedDataUnavailable(data, "decision traces");
-      if (unavailable) {
-        list.innerHTML = unavailable;
-        return;
-      }
-      list.innerHTML = (data.traces || []).slice(0, 10).map((item) => `
-        <article class="quiet-item">
-          <strong>${item.event}</strong><br />
-          <small>${item.decision_id} · ${item.approval_context} · ${item.timestamp}</small>
-        </article>
-      `).join("") || "<div class='quiet-item'>No traces yet.</div>";
-    }
-
-    async function loadWorkflows() {
-      const [survivability, traces] = await Promise.all([
-        jsonFetch("/automation/survivability"),
-        jsonFetch("/workflow/traces")
-      ]);
-      document.getElementById("workflowSummary").innerHTML = `
-        <article class="quiet-item">
-          <strong>${survivability.status}</strong><br />
-          <small>retry: ${survivability.retry_intelligence.status} · auto retry: ${survivability.retry_intelligence.auto_retry ? "yes" : "no"} · traceability: ${survivability.degraded_automation_continuity.traceability}</small>
-        </article>
-      `;
-      const list = document.getElementById("workflowList");
-      const unavailable = protectedDataUnavailable(traces, "workflow traces");
-      if (unavailable) {
-        list.innerHTML = unavailable;
-        return;
-      }
-      list.innerHTML = (traces.recent || []).slice(0, 10).map((item) => `
-        <article class="quiet-item">
-          <strong>${item.workflow} · ${item.status}</strong><br />
-          <small>${item.workflow_trace_id} · retry ${item.retry && item.retry.retry_allowed ? "visible" : "not needed"} · fallback ${item.fallback ? item.fallback.mode : "unknown"} · ${item.timestamp}</small>
-        </article>
-      `).join("") || "<div class='quiet-item'>No workflow traces yet.</div>";
-    }
-
-    async function loadDegraded() {
-      const [degraded, fallbacks] = await Promise.all([
-        jsonFetch("/automation/degraded-operations"),
-        jsonFetch("/automation/fallbacks")
-      ]);
-      document.getElementById("degradedSummary").innerHTML = `
-        <article class="quiet-item">
-          <strong>${degraded.status} · ${degraded.severity}</strong><br />
-          <small>${degraded.human_visibility.operator_message}</small><br />
-          <small>AI: ${degraded.operational_continuity.ai_coordination} · Memory: ${degraded.operational_continuity.memory_continuity} · Recovery: ${degraded.operational_continuity.task_recovery_continuity}</small>
-        </article>
-      `;
-      const plan = fallbacks.fallback_execution;
-      document.getElementById("fallbackList").innerHTML = `
-        <article class="quiet-item">
-          <strong>Fallback mode: ${plan.execution_mode}</strong><br />
-          <small>safe: ${plan.safe_actions.join(", ")} · restricted: ${(plan.restricted_actions || []).join(", ") || "none"}</small><br />
-          <small>auto retry: ${plan.retry_policy.auto_retry ? "yes" : "no"} · operator review: ${plan.retry_policy.retry_requires_operator_review ? "required" : "not required"}</small>
-        </article>
-      `;
-    }
-
-    async function loadMemoryIntegrity() {
-      const [memory, ai] = await Promise.all([
-        jsonFetch("/memory/integrity"),
-        jsonFetch("/ai/coordination/integrity")
-      ]);
-      const memoryState = memory.memory_survivability || {};
-      const operational = memory.operational_memory || {};
-      const workflowContinuity = operational.workflow_memory_continuity || {};
-      const contextContinuity = operational.operational_context_continuity || {};
-      document.getElementById("memoryIntegritySummary").innerHTML = `
-        <article class="quiet-item">
-          <strong>${memory.status}</strong><br />
-          <small>freshness: ${memoryState.stale_context_detection ? memoryState.stale_context_detection.state : "unknown"} - fallback: ${memoryState.fallback_mode || "unknown"}</small><br />
-          <small>workflow traces: ${workflowContinuity.workflow_trace_count || 0} - decision traces: ${contextContinuity.decision_trace_count || 0}</small><br />
-          <small>storage: ${memory.storage_model} - durability: ${memory.durability}</small>
-        </article>
-      `;
-      document.getElementById("aiIntegritySummary").innerHTML = `
-        <article class="quiet-item">
-          <strong>${ai.status}</strong><br />
-          <small>delegation: ${ai.task_delegation_continuity.delegation_mode} - agents: ${ai.task_delegation_continuity.registered_agents.length}</small><br />
-          <small>execution: ${ai.ai_execution_coherence.execution_claim} - fake AGI: no</small><br />
-          <small>operator review: ${ai.survivability.recovery_requires_operator_review ? "required when degraded" : "not required now"}</small>
-        </article>
-      `;
-    }
-
-    async function loadGovernanceTrust() {
-      const [deploy, trust, governance] = await Promise.all([
-        jsonFetch("/deploy/integrity"),
-        jsonFetch("/operational/trust"),
-        jsonFetch("/governance/automation")
-      ]);
-      document.getElementById("deployIntegritySummary").innerHTML = `
-        <article class="quiet-item">
-          <strong>${deploy.classification}</strong><br />
-          <small>source/live: ${deploy.source_to_live_continuity.status} - rollback: ${deploy.rollback_continuity.status}</small><br />
-          <small>branch: ${deploy.source.branch} - commit: ${deploy.source.commit} - dirty: ${deploy.source.dirty ? "yes" : "no"}</small><br />
-          <small>fake deploy success: no - deploy execution: none</small>
-        </article>
-      `;
-      document.getElementById("operationalTrustSummary").innerHTML = `
-        <article class="quiet-item">
-          <strong>${trust.status}</strong><br />
-          <small>workflow: ${trust.workflow_trust_validation.status} - orchestration: ${trust.orchestration_integrity_validation.status}</small><br />
-          <small>automation: ${trust.automation_trust_visibility.status} - degraded: ${trust.degraded_automation_awareness.status}</small>
-        </article>
-      `;
-      document.getElementById("automationGovernanceSummary").innerHTML = `
-        <article class="quiet-item">
-          <strong>${governance.status}</strong><br />
-          <small>freeze: ${governance.operational_freeze_baseline.freeze_required ? "required" : "not required"} - ${governance.operational_freeze_baseline.freeze_reason}</small><br />
-          <small>no autonomous deploy: ${governance.operational_freeze_baseline.no_autonomous_deploy ? "yes" : "no"} - governance PASS fake: no</small>
-        </article>
-      `;
-    }
-
-    async function loadFinalCertification() {
-      const certification = await jsonFetch("/certification/automation-foundation");
-      const audit = certification.audit || {};
-      const blockers = audit.blockers || [];
-      document.getElementById("finalClassificationSummary").innerHTML = `
-        <article class="quiet-item">
-          <strong>${certification.classification}</strong><br />
-          <small>operationally closed: ${certification.operationally_closed ? "yes" : "no"} - ${certification.closure_decision.reason}</small><br />
-          <small>fake AGI certification: no - fake enterprise-grade claim: no</small>
-        </article>
-      `;
-      document.getElementById("finalBlockersSummary").innerHTML = `
-        <article class="quiet-item">
-          <strong>Blockers</strong><br />
-          <small>${blockers.length ? blockers.join(", ") : "none"}</small>
-        </article>
-      `;
-      document.getElementById("finalCabinSummary").innerHTML = `
-        <article class="quiet-item">
-          <strong>Cabin integrity</strong><br />
-          <small>Human: ${audit.executive_operational_clarity ? audit.executive_operational_clarity.status : "unknown"} - Technical: ${audit.runtime_operational_integrity ? audit.runtime_operational_integrity.status : "unknown"}</small><br />
-          <small>Heart: evidence-only classification, no autonomous enterprise claim</small>
-        </article>
-      `;
-    }
-
+    mountIcons();
     loadRuntime().catch(() => {
-      document.getElementById("runtimeStatus").textContent = "runtime unavailable";
+      document.getElementById("runtimeStatus").textContent = "runtime no disponible";
     });
     loadHumanCabin().catch(() => {
       renderDeliverables([]);
     });
-    loadResults();
   </script>
 </body>
 </html>
