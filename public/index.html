@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CEREBRO | Chief of Staff</title>
-  <link rel="icon" href="/brand/cerebro-icon.png?v=8149460" />
+  <link rel="icon" href="/brand/cerebro-icon.png?v=visual-20260603" />
   <style>
     :root {
       color-scheme: dark;
@@ -822,6 +822,361 @@
         visibility: visible !important;
       }
     }
+
+    /* Surgical premium identity correction. Visual layer only. */
+    body {
+      background:
+        radial-gradient(circle at 18% 9%, rgba(215, 168, 77, 0.14), transparent 26rem),
+        radial-gradient(circle at 80% 12%, rgba(69, 80, 105, 0.18), transparent 30rem),
+        linear-gradient(180deg, #030406 0%, #080b10 42%, #040506 100%);
+    }
+
+    body::after {
+      opacity: 0.24;
+      background:
+        linear-gradient(90deg, transparent, rgba(240, 212, 154, 0.22), transparent),
+        linear-gradient(180deg, transparent, rgba(255, 255, 255, 0.12));
+    }
+
+    .app-shell {
+      width: min(1580px, 100%);
+      padding-top: 18px;
+    }
+
+    .topbar {
+      padding-bottom: 14px;
+      border-bottom: 1px solid rgba(215, 168, 77, 0.13);
+    }
+
+    .brand-icon,
+    .hero-icon {
+      object-fit: contain;
+      padding: 5px;
+      border-radius: 24%;
+      border: 1px solid rgba(240, 212, 154, 0.34);
+      background:
+        linear-gradient(145deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.018)),
+        #05070a;
+      box-shadow:
+        0 22px 50px rgba(0, 0, 0, 0.38),
+        0 0 0 1px rgba(215, 168, 77, 0.06),
+        0 0 32px rgba(215, 168, 77, 0.12);
+    }
+
+    .brand-copy strong,
+    .sidebar-brand strong,
+    .chat-title h1 {
+      font-family: "SF Pro Display", Inter, ui-sans-serif, system-ui, sans-serif;
+      text-shadow: 0 8px 34px rgba(215, 168, 77, 0.16);
+    }
+
+    .brand-copy strong {
+      color: #e7c27b;
+      font-weight: 500;
+      letter-spacing: 0.31em;
+    }
+
+    .brand-copy span,
+    .sidebar-brand span,
+    .subtitle {
+      color: rgba(240, 212, 154, 0.78);
+    }
+
+    .office {
+      grid-template-columns: 222px minmax(620px, 1fr) 292px;
+      gap: 18px;
+      padding-top: 18px;
+    }
+
+    .sidebar,
+    .chat-center,
+    .context-panel,
+    .drawer-panel,
+    .mobile-drawer {
+      border: 1px solid rgba(215, 168, 77, 0.18);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.082), rgba(255, 255, 255, 0.026)),
+        linear-gradient(145deg, rgba(215, 168, 77, 0.045), transparent 38%),
+        rgba(4, 7, 10, 0.84);
+      box-shadow:
+        0 28px 90px rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.055),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.025);
+    }
+
+    .sidebar,
+    .context-panel {
+      opacity: 0.88;
+    }
+
+    .chat-center {
+      position: relative;
+      grid-template-rows: auto minmax(520px, 1fr) auto auto;
+      overflow: hidden;
+      border-color: rgba(240, 212, 154, 0.24);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.096), rgba(255, 255, 255, 0.032)),
+        radial-gradient(circle at 70% 0%, rgba(215, 168, 77, 0.12), transparent 26rem),
+        rgba(5, 8, 11, 0.92);
+      box-shadow:
+        0 34px 110px rgba(0, 0, 0, 0.58),
+        0 0 0 1px rgba(240, 212, 154, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.075);
+    }
+
+    .chat-center::before {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      content: "";
+      background:
+        linear-gradient(90deg, transparent, rgba(240, 212, 154, 0.09), transparent),
+        radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.04), transparent 18rem);
+      mask-image: linear-gradient(180deg, #000, transparent 64%);
+    }
+
+    .chat-header,
+    .chat-log,
+    .chat-form,
+    .summary-chips {
+      position: relative;
+      z-index: 1;
+    }
+
+    .chat-header {
+      align-items: center;
+      padding-bottom: 18px;
+      border-bottom: 1px solid rgba(215, 168, 77, 0.13);
+    }
+
+    .chat-title h1 {
+      color: #e4bd72;
+      font-weight: 500;
+      letter-spacing: 0.16em;
+    }
+
+    .eyebrow {
+      color: rgba(240, 212, 154, 0.82);
+      letter-spacing: 0.16em;
+    }
+
+    .hero-icon {
+      width: clamp(94px, 10vw, 138px);
+      height: clamp(94px, 10vw, 138px);
+      padding: 7px;
+    }
+
+    .chat-log {
+      min-height: 520px;
+      border: 1px solid rgba(255, 255, 255, 0.055);
+      border-radius: 14px;
+      background:
+        linear-gradient(180deg, rgba(0, 0, 0, 0.17), rgba(255, 255, 255, 0.018)),
+        rgba(0, 0, 0, 0.18);
+      box-shadow:
+        inset 0 0 0 1px rgba(215, 168, 77, 0.08),
+        inset 0 28px 60px rgba(0, 0, 0, 0.12);
+    }
+
+    .chat-message {
+      border-radius: 14px;
+      font-size: 1.02rem;
+      line-height: 1.78;
+      background: rgba(255, 255, 255, 0.052);
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.06),
+        0 12px 34px rgba(0, 0, 0, 0.18);
+    }
+
+    .chat-message.assistant,
+    .chat-message:not(.user):not(.system) {
+      max-width: min(880px, 96%);
+      border-left: 2px solid rgba(240, 212, 154, 0.7);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.074), rgba(255, 255, 255, 0.032)),
+        rgba(8, 10, 13, 0.86);
+    }
+
+    .chat-message.system {
+      max-width: min(880px, 100%);
+      color: rgba(244, 239, 230, 0.74);
+      border: 1px solid rgba(215, 168, 77, 0.12);
+      background: rgba(215, 168, 77, 0.055);
+    }
+
+    .chat-message.user {
+      max-width: min(680px, 88%);
+      border: 1px solid rgba(215, 168, 77, 0.2);
+      background: linear-gradient(180deg, rgba(215, 168, 77, 0.18), rgba(215, 168, 77, 0.08));
+    }
+
+    .chat-form {
+      border-radius: 16px;
+      padding: 12px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.078), rgba(255, 255, 255, 0.03)),
+        rgba(0, 0, 0, 0.24);
+      box-shadow:
+        0 22px 58px rgba(0, 0, 0, 0.34),
+        inset 0 0 0 1px rgba(240, 212, 154, 0.18);
+    }
+
+    #chatInput {
+      font-size: 1rem;
+    }
+
+    .send-button {
+      border-radius: 14px;
+      background: linear-gradient(145deg, #f4d79b, #d6a24b 54%, #8c5d20);
+      box-shadow:
+        0 16px 38px rgba(215, 168, 77, 0.26),
+        inset 0 1px 0 rgba(255, 255, 255, 0.32);
+    }
+
+    .nav-list a:hover,
+    .nav-list a.active,
+    .action-button:hover,
+    .send-button:hover,
+    .mobile-menu-button:hover,
+    .icon-button:hover,
+    .auth-control button:hover {
+      box-shadow:
+        0 16px 34px rgba(0, 0, 0, 0.24),
+        0 0 24px rgba(215, 168, 77, 0.13),
+        inset 0 0 0 1px rgba(240, 212, 154, 0.24);
+    }
+
+    .drawer-panel {
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.068), rgba(255, 255, 255, 0.022)),
+        rgba(5, 8, 11, 0.64);
+    }
+
+    .summary-chips span,
+    .chip {
+      border: 1px solid rgba(215, 168, 77, 0.12);
+      color: rgba(244, 239, 230, 0.68);
+      background: rgba(255, 255, 255, 0.038);
+    }
+
+    @media (max-width: 1180px) {
+      .office {
+        grid-template-columns: 210px minmax(0, 1fr);
+      }
+    }
+
+    @media (max-width: 760px) {
+      .app-shell {
+        padding: 10px 9px 18px;
+      }
+
+      .topbar {
+        padding-bottom: 10px;
+      }
+
+      .brand-icon {
+        width: 42px;
+        height: 42px;
+        padding: 4px;
+      }
+
+      .brand-copy strong {
+        font-size: 1.18rem;
+        letter-spacing: 0.18em;
+      }
+
+      .chat-center {
+        min-height: calc(100vh - 82px);
+        grid-template-rows: auto minmax(390px, 1fr) auto auto;
+        gap: 12px;
+        padding: 14px;
+        border-radius: 14px;
+      }
+
+      .chat-header {
+        align-items: center;
+        padding-bottom: 12px;
+      }
+
+      .hero-icon {
+        width: 58px;
+        height: 58px;
+        padding: 4px;
+      }
+
+      .chat-title h1 {
+        font-size: clamp(2rem, 11vw, 3rem);
+        letter-spacing: 0.12em;
+      }
+
+      .chat-log {
+        min-height: 390px;
+        padding: 12px;
+        border-radius: 12px;
+      }
+
+      .chat-message,
+      .chat-message.system,
+      .chat-message.assistant,
+      .chat-message:not(.user):not(.system) {
+        max-width: calc(100vw - 58px);
+        border-radius: 13px;
+      }
+
+      .chat-message.user {
+        max-width: calc(100vw - 82px);
+      }
+
+      .chat-form {
+        border-radius: 14px;
+        padding: 9px;
+      }
+
+      .mobile-drawer {
+        width: min(326px, calc(100vw - 34px));
+        border-radius: 14px;
+      }
+    }
+
+    /* Keep the approved brand header free of technical controls. */
+    .topbar {
+      justify-content: flex-start;
+    }
+
+    .top-actions {
+      display: none;
+    }
+
+    .chat-center {
+      grid-template-rows: auto minmax(360px, 1fr) auto auto;
+      height: calc(100vh - 132px);
+      min-height: 680px;
+      max-height: 860px;
+    }
+
+    .chat-log {
+      min-height: min(430px, calc(100vh - 380px));
+    }
+
+    .office {
+      align-items: start;
+    }
+
+    @media (max-width: 760px) {
+      .topbar {
+        justify-content: space-between;
+      }
+
+      .chat-center {
+        grid-template-rows: auto minmax(390px, 1fr) auto auto;
+        height: auto;
+        max-height: none;
+      }
+
+      .chat-log {
+        min-height: 390px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -832,7 +1187,7 @@
         <span></span>
       </label>
       <div class="brand">
-        <img class="brand-icon" src="/brand/cerebro-icon.png?v=8149460" alt="" loading="eager" />
+        <img class="brand-icon" src="/brand/cerebro-icon.png?v=visual-20260603" alt="" loading="eager" />
         <div class="brand-copy">
           <strong>CEREBRO</strong>
           <span>Chief of Staff</span>
@@ -850,7 +1205,7 @@
     <section class="office" aria-label="Despacho privado del Chief of Staff">
       <aside class="sidebar" aria-label="Navegacion principal">
         <div class="sidebar-brand">
-          <img class="brand-icon" src="/brand/cerebro-icon.png?v=8149460" alt="" loading="eager" />
+          <img class="brand-icon" src="/brand/cerebro-icon.png?v=visual-20260603" alt="" loading="eager" />
           <div>
             <strong>CEREBRO</strong>
             <span>Chief of Staff</span>
@@ -883,11 +1238,11 @@
             <h1>CEREBRO</h1>
             <p class="subtitle">Chief of Staff</p>
           </div>
-          <img class="hero-icon" src="/brand/cerebro-icon.png?v=8149460" alt="" loading="eager" />
+          <img class="hero-icon" src="/brand/cerebro-icon.png?v=visual-20260603" alt="" loading="eager" />
         </div>
 
         <div class="chat-log" id="chatLog" aria-live="polite">
-          <div class="chat-message system">Estoy listo para ayudarte a ordenar prioridades, detectar bloqueos y convertir decisiones en ejecucion.</div>
+          <div class="chat-message system">Estoy listo para ayudarte a ordenar prioridades, detectar bloqueos y convertir decisiones en ejecución.</div>
         </div>
 
         <form class="chat-form" id="chatForm">
@@ -939,7 +1294,7 @@
   <label class="drawer-scrim" id="drawerScrim" for="drawerToggle" aria-hidden="true"></label>
   <aside class="mobile-drawer" id="mobileDrawer" aria-label="Menu mobile" aria-hidden="true">
     <div class="sidebar-brand">
-      <img class="brand-icon" src="/brand/cerebro-icon.png?v=8149460" alt="" loading="eager" />
+      <img class="brand-icon" src="/brand/cerebro-icon.png?v=visual-20260603" alt="" loading="eager" />
       <div>
         <strong>CEREBRO</strong>
         <span>Chief of Staff</span>
@@ -974,7 +1329,7 @@
 
     function mountIcons() {
       document.querySelectorAll(".brand-icon, .hero-icon").forEach((target) => {
-        if (target.tagName === "IMG") target.setAttribute("src", "/brand/cerebro-icon.png?v=8149460");
+        if (target.tagName === "IMG") target.setAttribute("src", "/brand/cerebro-icon.png?v=visual-20260603");
       });
     }
 
