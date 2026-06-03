@@ -417,6 +417,443 @@
       .chat-form { grid-template-columns: 1fr; }
       .chat-form .button { width: 100%; }
     }
+
+    /* Premium CEO Executive OS */
+    :root {
+      --executive-bg: #0b0b0b;
+      --executive-surface: rgba(255, 255, 255, 0.055);
+      --executive-surface-strong: rgba(255, 255, 255, 0.085);
+      --executive-line: rgba(245, 239, 229, 0.12);
+      --executive-line-soft: rgba(245, 239, 229, 0.07);
+      --executive-text: #f4efe7;
+      --executive-muted: rgba(244, 239, 231, 0.62);
+      --executive-soft: rgba(244, 239, 231, 0.42);
+      --executive-accent: #d9bd82;
+      --executive-accent-soft: rgba(217, 189, 130, 0.13);
+      --executive-shadow: 0 24px 80px rgba(0, 0, 0, 0.34);
+    }
+
+    body {
+      min-width: 320px;
+      background:
+        linear-gradient(180deg, #11110f 0%, var(--executive-bg) 44%, #0e0d0c 100%),
+        #0b0b0b;
+    }
+
+    .shell {
+      width: min(1480px, 100%);
+      padding: 22px clamp(18px, 3vw, 42px) 42px;
+    }
+
+    .topbar {
+      min-height: 60px;
+      padding: 8px 0 18px;
+    }
+
+    .brand strong {
+      color: var(--executive-text);
+      font-weight: 760;
+    }
+
+    .brand span,
+    .status-pill {
+      color: var(--executive-muted);
+    }
+
+    .mark {
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--executive-accent);
+      box-shadow: inset 0 0 0 1px var(--executive-line);
+    }
+
+    .auth-control {
+      opacity: 0.72;
+    }
+
+    .auth-control input,
+    .auth-control button,
+    .status-pill {
+      border-radius: 12px;
+      background: var(--executive-surface);
+      box-shadow: inset 0 0 0 1px var(--executive-line-soft);
+    }
+
+    .status-pill {
+      max-width: 280px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .executive-os {
+      display: grid;
+      grid-template-columns: minmax(230px, 0.72fr) minmax(520px, 1.82fr) minmax(230px, 0.72fr);
+      gap: clamp(16px, 2vw, 24px);
+      align-items: stretch;
+      min-height: calc(100vh - 116px);
+      padding: 10px 0 24px;
+    }
+
+    .executive-rail {
+      display: grid;
+      align-content: start;
+      gap: 14px;
+      min-width: 0;
+    }
+
+    .executive-card,
+    .chat-stage,
+    .dashboard-band,
+    .panel {
+      border-radius: 8px;
+      background: linear-gradient(180deg, var(--executive-surface-strong), rgba(255, 255, 255, 0.035));
+      box-shadow: var(--executive-shadow), inset 0 0 0 1px var(--executive-line);
+      backdrop-filter: blur(18px);
+    }
+
+    .executive-card {
+      min-width: 0;
+      padding: 18px;
+    }
+
+    .executive-card.primary-context {
+      min-height: 190px;
+    }
+
+    .executive-card h2,
+    .executive-card h3 {
+      margin: 0 0 10px;
+      color: var(--executive-text);
+      font-size: 1.02rem;
+      font-weight: 720;
+      line-height: 1.22;
+    }
+
+    .executive-card p {
+      margin: 0;
+      color: var(--executive-muted);
+      font-size: 0.92rem;
+      line-height: 1.55;
+    }
+
+    .primary-context > p:not(.executive-label):not(.executive-intro) {
+      display: none;
+    }
+
+    .executive-card ul {
+      display: grid;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .executive-card li {
+      color: rgba(244, 239, 231, 0.78);
+      font-size: 0.9rem;
+      line-height: 1.44;
+      overflow-wrap: anywhere;
+    }
+
+    .executive-card li::before {
+      content: "";
+      display: inline-block;
+      width: 5px;
+      height: 5px;
+      margin-right: 9px;
+      margin-bottom: 2px;
+      border-radius: 50%;
+      background: var(--executive-accent);
+      opacity: 0.62;
+    }
+
+    .executive-label,
+    .eyebrow {
+      margin: 0 0 12px;
+      color: var(--executive-accent);
+      font-size: 0.72rem;
+      font-weight: 760;
+      letter-spacing: 0;
+      text-transform: uppercase;
+    }
+
+    .executive-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .executive-meta span,
+    .command-row span {
+      padding: 8px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--executive-muted);
+      box-shadow: inset 0 0 0 1px var(--executive-line-soft);
+      font-size: 0.78rem;
+    }
+
+    .chat-stage {
+      min-width: 0;
+      display: grid;
+      grid-template-rows: auto minmax(420px, 1fr) auto auto;
+      gap: 18px;
+      padding: clamp(22px, 3vw, 38px);
+    }
+
+    .human-cabin-header {
+      align-items: flex-start;
+    }
+
+    .chat-title h1 {
+      max-width: 760px;
+      margin: 0;
+      color: var(--executive-text);
+      font-size: clamp(2.4rem, 5vw, 5.4rem);
+      line-height: 0.98;
+      font-weight: 770;
+    }
+
+    .chat-title p:not(.eyebrow) {
+      max-width: 720px;
+      margin: 16px 0 0;
+      color: var(--executive-muted);
+      font-size: 1.02rem;
+      line-height: 1.72;
+    }
+
+    .avatar-core {
+      width: 54px;
+      height: 54px;
+      border-radius: 16px;
+      background: var(--executive-accent-soft);
+      color: var(--executive-accent);
+      box-shadow: inset 0 0 0 1px rgba(217, 189, 130, 0.22);
+    }
+
+    .chat-log {
+      min-height: 420px;
+      max-height: none;
+      padding: clamp(18px, 2vw, 28px);
+      gap: 18px;
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.16);
+      box-shadow: inset 0 0 0 1px var(--executive-line-soft);
+      scrollbar-color: rgba(217, 189, 130, 0.38) transparent;
+    }
+
+    .chat-message {
+      max-width: min(780px, 94%);
+      padding: 16px 18px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      color: rgba(244, 239, 231, 0.88);
+      font-size: 1rem;
+      line-height: 1.68;
+      box-shadow: inset 0 0 0 1px var(--executive-line-soft);
+    }
+
+    .chat-message:not(.user):not(.system) {
+      background: rgba(255, 255, 255, 0.075);
+      color: var(--executive-text);
+    }
+
+    .chat-message.user {
+      max-width: min(680px, 86%);
+      background: rgba(217, 189, 130, 0.14);
+      color: var(--executive-text);
+      box-shadow: inset 0 0 0 1px rgba(217, 189, 130, 0.18);
+    }
+
+    .chat-message.system {
+      max-width: min(760px, 96%);
+      color: var(--executive-muted);
+      background: rgba(255, 255, 255, 0.04);
+    }
+
+    .chat-form {
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 12px;
+      padding: 10px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.055);
+      box-shadow: inset 0 0 0 1px var(--executive-line);
+    }
+
+    #chatInput {
+      min-height: 56px;
+      border: 0;
+      border-radius: 8px;
+      background: transparent;
+      color: var(--executive-text);
+      font-size: 1rem;
+      line-height: 1.45;
+      resize: none;
+    }
+
+    #chatInput::placeholder {
+      color: rgba(244, 239, 231, 0.42);
+    }
+
+    .button {
+      min-height: 56px;
+      border-radius: 8px;
+      background: linear-gradient(135deg, #e2c98f, #caa45f);
+      color: #17130d;
+      font-weight: 760;
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+    }
+
+    .button.secondary {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--executive-text);
+      box-shadow: inset 0 0 0 1px var(--executive-line);
+    }
+
+    .quiet-list {
+      gap: 10px;
+    }
+
+    .quiet-item {
+      background: rgba(255, 255, 255, 0.045);
+      color: var(--executive-text);
+      box-shadow: inset 0 0 0 1px var(--executive-line-soft);
+    }
+
+    .quiet-item small {
+      color: var(--executive-muted);
+      line-height: 1.45;
+    }
+
+    .dashboard-band {
+      margin-top: 14px;
+      margin-bottom: 18px;
+      padding: 20px;
+      opacity: 0.84;
+    }
+
+    .dashboard-band h2 {
+      font-size: 1.35rem;
+    }
+
+    .signal-grid {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .signal {
+      min-height: 82px;
+      background: rgba(255, 255, 255, 0.035);
+    }
+
+    .signal strong {
+      font-size: 1.05rem;
+      font-weight: 680;
+    }
+
+    .tabs {
+      opacity: 0.78;
+    }
+
+    .panel {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    @media (max-width: 1180px) {
+      .executive-os {
+        grid-template-columns: minmax(0, 1fr);
+        min-height: auto;
+      }
+
+      .executive-rail {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        order: 2;
+      }
+
+      .chat-stage {
+        order: 1;
+      }
+
+      .signal-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 720px) {
+      .shell {
+        padding: 16px 12px 28px;
+      }
+
+      .topbar {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .auth-control {
+        width: 100%;
+      }
+
+      .status-pill {
+        max-width: 100%;
+      }
+
+      .executive-os {
+        gap: 12px;
+      }
+
+      .executive-rail {
+        grid-template-columns: 1fr;
+      }
+
+      .chat-stage {
+        grid-template-rows: auto minmax(360px, 58vh) auto auto;
+        padding: 18px;
+      }
+
+      .human-cabin-header {
+        gap: 18px;
+      }
+
+      .chat-title h1 {
+        font-size: clamp(2.05rem, 12vw, 3.4rem);
+      }
+
+      .chat-title p:not(.eyebrow) {
+        font-size: 0.95rem;
+      }
+
+      .chat-log {
+        min-height: 360px;
+        padding: 14px;
+      }
+
+      .chat-message,
+      .chat-message.user,
+      .chat-message.system {
+        max-width: 100%;
+        font-size: 0.95rem;
+      }
+
+      .chat-form {
+        grid-template-columns: 1fr;
+      }
+
+      .chat-form .button {
+        width: 100%;
+      }
+
+      .signal-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .command-row span,
+      .tab {
+        width: auto;
+        text-align: left;
+      }
+    }
   </style>
 </head>
 <body>
@@ -436,44 +873,74 @@
       <div class="status-pill" id="runtimeStatus">runtime loading</div>
     </header>
 
-    <section class="hero">
-      <div class="hero-copy">
-        <p class="eyebrow">Human Cabin</p>
-        <h1>CEREBRO dirige el ecosistema contigo.</h1>
+    <section class="executive-os" aria-label="CEREBRO Human Cabin Premium">
+      <aside class="executive-rail" aria-label="Contexto ejecutivo">
+        <article class="executive-card primary-context">
+        <p class="executive-label">Human Cabin</p>
+        <h2>Direccion estrategica continua</h2>
+        <p class="executive-intro">CEREBRO mantiene el contexto de decisiones, prioridades y entregables para conversaciones largas sin fatiga visual.</p>
         <p>Habla en español, recuerda decisiones, protege el foco y genera entregables visibles sin romper la trazabilidad operacional.</p>
-        <div class="command-row">
+        <div class="executive-meta">
           <span>chat natural activo</span>
           <span>memoria persistente</span>
           <span>entregables visibles</span>
           <span id="certificationBadge">verificando estado</span>
         </div>
-        <div class="quiet-list" id="ecosystemSummary"></div>
-      </div>
+        </article>
+        <article class="executive-card">
+          <p class="executive-label">Memoria ejecutiva</p>
+          <div id="memoryPanel"><p>Sincronizando memoria persistente...</p></div>
+        </article>
+        <article class="executive-card">
+          <p class="executive-label">Prioridades activas</p>
+          <div id="priorityPanel"><p>Preparando prioridades...</p></div>
+        </article>
+      </aside>
 
-      <aside class="signal-panel human-cabin-panel">
+      <section class="chat-stage" aria-label="Chat principal de CEREBRO">
         <div class="human-cabin-header">
-          <div>
+          <div class="chat-title">
             <p class="eyebrow">CEREBRO habla</p>
-            <h2>Cabina humana</h2>
+            <h1>CEREBRO dirige el ecosistema contigo.</h1>
+            <p>Un Chief of Staff ejecutivo para pensar, priorizar y convertir decisiones en entregables visibles.</p>
           </div>
           <div class="avatar-core">C</div>
         </div>
         <div class="chat-log" id="chatLog" aria-live="polite">
-          <div class="chat-message system">CEO, estoy listo. Puedo resumir el ecosistema, detectar bloqueos, priorizar y generar entregables.</div>
+          <div class="chat-message system">CEO, estoy listo. Puedo resumir el ecosistema, detectar bloqueos, priorizar y preparar entregables con memoria persistente.</div>
         </div>
         <form class="chat-form" id="chatForm">
-          <input id="chatInput" autocomplete="off" placeholder="Habla con CEREBRO" />
+          <textarea id="chatInput" rows="2" autocomplete="off" placeholder="Habla con CEREBRO como con tu Chief of Staff..."></textarea>
           <button class="button" type="submit">Enviar</button>
         </form>
-        <div class="quiet-list" id="humanDeliverables"></div>
+        <div class="executive-meta" id="ecosystemSummary"></div>
+      </section>
+
+      <aside class="executive-rail" aria-label="Trabajo activo">
+        <article class="executive-card">
+          <p class="executive-label">Proyectos activos</p>
+          <div id="projectPanel"><p>Sincronizando proyectos...</p></div>
+        </article>
+        <article class="executive-card">
+          <p class="executive-label">Entregables</p>
+          <div class="quiet-list" id="humanDeliverables"></div>
+        </article>
+        <article class="executive-card">
+          <p class="executive-label">Estado discreto</p>
+          <ul>
+            <li>Provider: <span id="providerMiniSignal">checking</span></li>
+            <li>Memoria: <span id="memoryMiniSignal">checking</span></li>
+            <li>Runtime: <span id="runtimeMiniSignal">checking</span></li>
+          </ul>
+        </article>
       </aside>
     </section>
 
     <section class="signal-panel dashboard-band">
       <div>
-        <p class="eyebrow">Estado ejecutivo</p>
-        <h2>Dashboard preservado</h2>
-        <p style="color: var(--muted)">La cabina conserva gobierno, memoria, trazas, automatizacion y confianza operacional.</p>
+        <p class="eyebrow">Sistema de respaldo</p>
+        <h2>Senales operativas discretas</h2>
+        <p style="color: var(--muted)">La cabina conserva gobierno, memoria, trazas, automatizacion y confianza operacional sin competir con la conversacion.</p>
       </div>
       <div class="signal-grid">
         <div class="signal"><span>Governance</span><strong id="govSignal">active</strong></div>
@@ -720,9 +1187,33 @@
       log.scrollTop = log.scrollHeight;
     }
 
+    function renderExecutiveList(targetId, items, emptyText) {
+      const target = document.getElementById(targetId);
+      if (!target) return;
+      const list = (items || []).filter(Boolean).slice(0, 5);
+      target.innerHTML = list.length
+        ? `<ul>${list.map((item) => `<li>${escapeHtml(typeof item === "string" ? item : item.name || item.title || item.role || "Elemento activo")}</li>`).join("")}</ul>`
+        : `<p>${escapeHtml(emptyText)}</p>`;
+    }
+
+    function renderExecutiveMemory(snapshot) {
+      const counts = snapshot.counts || {};
+      const backend = snapshot.memory_backend || snapshot.memory && snapshot.memory.memory_backend || {};
+      const status = snapshot.memory && snapshot.memory.status ? snapshot.memory.status : "READY";
+      renderExecutiveList("memoryPanel", [
+        `Memoria ${status.toLowerCase()} con ${counts.conversations || 0} conversaciones`,
+        `${counts.decisions || 0} decisiones y ${counts.deliverables || 0} entregables registrados`,
+        backend.persistent ? "Persistencia productiva activa en KV" : "Persistencia pendiente de confirmacion",
+      ], "Memoria ejecutiva sincronizandose.");
+    }
+
     function renderDeliverables(items) {
       const target = document.getElementById("humanDeliverables");
       const list = items || [];
+      target.innerHTML = list.length
+        ? `<ul>${list.slice(0, 4).map((item) => `<li>${escapeHtml(item.filename || item.title || "Entregable visible")}</li>`).join("")}</ul>`
+        : `<p>Aun no hay entregables generados desde esta cabina.</p>`;
+      return;
       target.innerHTML = list.length ? `
         <article class="quiet-item">
           <strong>Entregables visibles</strong><br />
@@ -746,12 +1237,31 @@
       const agentCounts = localAgent.agents || {};
       const taskCounts = localAgent.tasks || {};
       target.innerHTML = `
+        <span>${escapeHtml(apps || "Sin apps registradas")}</span>
+        <span>${counts.conversations || 0} conversaciones</span>
+        <span>${counts.deliverables || 0} entregables</span>
+        <span>${taskCounts.total || 0} tareas</span>
+        <span>${agentCounts.total || 0} agentes</span>
+        <span>${blockers} bloqueos</span>
+      `;
+      renderExecutiveMemory(snapshot);
+      renderExecutiveList("priorityPanel", snapshot.priorities || [], "Sin prioridades activas verificadas.");
+      renderExecutiveList("projectPanel", snapshot.projects || [], "Sin proyectos activos verificados.");
+      return;
+      target.innerHTML = `
         <article class="quiet-item">
           <strong>${escapeHtml(apps || "Sin apps registradas")}</strong><br />
           <small>decisiones ${counts.decisions || 0} · conversaciones ${counts.conversations || 0} · entregables ${counts.deliverables || 0} · tareas ${taskCounts.total || 0} · agentes ${agentCounts.total || 0} · bloqueos ${blockers}</small>
         </article>
       `;
     }
+
+    document.getElementById("chatInput").addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        document.getElementById("chatForm").requestSubmit();
+      }
+    });
 
     async function loadConversation() {
       const data = await jsonFetch(`/api/conversations/${conversationId}`);
@@ -854,6 +1364,9 @@
       document.getElementById("authSignal").textContent = auth.status || continuity.auth_continuity || "unknown";
       document.getElementById("certSignal").textContent = readiness.certification.enterprise_ready ? "ready" : "not ready";
       document.getElementById("certificationBadge").textContent = finalCertification.classification || readiness.certification.classification;
+      document.getElementById("providerMiniSignal").textContent = runtime.provider_ready ? "ready" : "not ready";
+      document.getElementById("memoryMiniSignal").textContent = runtime.storage && runtime.storage.enabled ? "persistent" : "local";
+      document.getElementById("runtimeMiniSignal").textContent = runtime.status || "unknown";
     }
 
     document.getElementById("activateButton").addEventListener("click", async () => {
