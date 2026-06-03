@@ -3086,7 +3086,9 @@ app.post("/agent/v1/tasks/:taskId/results", (req, res) => mutateAssignedLocalAge
 }));
 
 app.post("/api/chat", async (req, res) => {
-  const { message, session_id: requestedSessionId, context } = req.body || {};
+  const payload = req.body || {};
+  const { message, context } = payload;
+  const requestedSessionId = payload.session_id || payload.conversation_id || payload.conversationId;
   if (!message || typeof message !== "string") {
     return res.status(400).json({
       success: false,
@@ -3255,6 +3257,7 @@ app.post("/api/chat", async (req, res) => {
     provider_status: provider.status,
     reply,
     session_id: session.session_id,
+    conversation_id: session.session_id,
     conversation_persisted: Boolean(persistence.files.conversations),
     memory_persisted: Boolean(persistence.files.memoria && persistence.files.operational_memory),
     persistence,

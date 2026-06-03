@@ -144,8 +144,20 @@ async function request(method, path, body, options = {}) {
     message: "Hola CEREBRO, resume el ecosistema.",
   }, { auth: false });
   assert.strictEqual(chat.success, true);
+  assert.strictEqual(chat.session_id, "test_human_cabin");
+  assert.strictEqual(chat.conversation_id, "test_human_cabin");
   assert.strictEqual(chat.conversation_persisted, true);
   assert.ok(chat.reply.includes("CEO") || chat.reply.includes("ecosistema"));
+
+  const conversationAliasChat = await request("POST", "/api/chat", {
+    conversation_id: "test_human_cabin_alias",
+    message: "Confirma continuidad por alias de conversacion.",
+  }, { auth: false });
+  assert.strictEqual(conversationAliasChat.success, true);
+  assert.strictEqual(conversationAliasChat.session_id, "test_human_cabin_alias");
+  const conversationAlias = await request("GET", "/api/conversations/test_human_cabin_alias", null, { auth: false });
+  assert.strictEqual(conversationAlias.persisted, true);
+  assert.ok(conversationAlias.messages.length >= 2);
 
   const deliverableChat = await request("POST", "/api/chat", {
     session_id: "test_human_cabin",
