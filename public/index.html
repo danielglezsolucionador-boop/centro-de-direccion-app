@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CEREBRO | Chief of Staff</title>
-  <link rel="icon" href="/cerebro-chief-of-staff-icon.svg" />
+  <link rel="icon" href="/brand/cerebro-icon.png" />
   <style>
     :root {
       color-scheme: dark;
@@ -98,10 +98,16 @@
     }
 
     .brand-icon,
-    .brand-icon svg {
+    .hero-icon {
       width: 56px;
       height: 56px;
       flex: 0 0 auto;
+      display: block;
+      border-radius: 16px;
+      object-fit: cover;
+      border: 1px solid rgba(215, 168, 77, 0.28);
+      background: rgba(5, 7, 10, 0.78);
+      box-shadow: 0 18px 42px rgba(0, 0, 0, 0.28), 0 0 22px rgba(215, 168, 77, 0.08);
     }
 
     .brand-copy strong,
@@ -273,8 +279,7 @@
       border-bottom: 1px solid var(--line-soft);
     }
 
-    .sidebar-brand .brand-icon,
-    .sidebar-brand .brand-icon svg {
+    .sidebar-brand .brand-icon {
       width: 48px;
       height: 48px;
     }
@@ -403,10 +408,9 @@
       line-height: 1.7;
     }
 
-    .hero-icon,
-    .hero-icon svg {
+    .hero-icon {
       width: clamp(78px, 10vw, 118px);
-      height: clamp(92px, 12vw, 138px);
+      height: clamp(78px, 10vw, 118px);
       flex: 0 0 auto;
     }
 
@@ -650,45 +654,6 @@
       pointer-events: none;
     }
 
-    .neural-line {
-      stroke-dasharray: 9 34;
-      stroke-dashoffset: 0;
-      animation: neuralPulse 8s linear infinite;
-    }
-
-    .neural-line.delay-a { animation-delay: -2s; }
-    .neural-line.delay-b { animation-delay: -4.4s; }
-    .neural-node {
-      animation: nodeGlow 7s ease-in-out infinite;
-    }
-    .neural-node.delay-a { animation-delay: -2.8s; }
-    .neural-node.delay-b { animation-delay: -5.2s; }
-
-    @keyframes neuralPulse {
-      0% {
-        stroke-dashoffset: 0;
-        opacity: 0.28;
-      }
-      35% {
-        opacity: 0.72;
-      }
-      100% {
-        stroke-dashoffset: -86;
-        opacity: 0.3;
-      }
-    }
-
-    @keyframes nodeGlow {
-      0%, 100% {
-        opacity: 0.42;
-        filter: drop-shadow(0 0 1px rgba(215, 168, 77, 0.18));
-      }
-      48% {
-        opacity: 1;
-        filter: drop-shadow(0 0 7px rgba(215, 168, 77, 0.52));
-      }
-    }
-
     @media (max-width: 1180px) {
       .office {
         grid-template-columns: 220px minmax(0, 1fr);
@@ -714,7 +679,7 @@
       }
 
       .brand-icon,
-      .brand-icon svg {
+      .hero-icon {
         width: 44px;
         height: 44px;
       }
@@ -756,10 +721,9 @@
         gap: 12px;
       }
 
-      .hero-icon,
-      .hero-icon svg {
+      .hero-icon {
         width: 64px;
-        height: 82px;
+        height: 64px;
       }
 
       h1 {
@@ -868,7 +832,7 @@
         <span></span>
       </label>
       <div class="brand">
-        <div class="brand-icon" aria-hidden="true"></div>
+        <img class="brand-icon" src="/brand/cerebro-icon.png" alt="" loading="eager" />
         <div class="brand-copy">
           <strong>CEREBRO</strong>
           <span>Chief of Staff</span>
@@ -886,7 +850,7 @@
     <section class="office" aria-label="Despacho privado del Chief of Staff">
       <aside class="sidebar" aria-label="Navegacion principal">
         <div class="sidebar-brand">
-          <div class="brand-icon" aria-hidden="true"></div>
+          <img class="brand-icon" src="/brand/cerebro-icon.png" alt="" loading="eager" />
           <div>
             <strong>CEREBRO</strong>
             <span>Chief of Staff</span>
@@ -917,13 +881,13 @@
           <div class="chat-title">
             <p class="eyebrow">La segunda mente más importante de la organización</p>
             <h1>CEREBRO</h1>
-            <p class="subtitle">Chief of Staff ejecutivo para convertir contexto, prioridades y decisiones en direccion clara.</p>
+            <p class="subtitle">Chief of Staff</p>
           </div>
-          <div class="hero-icon" aria-hidden="true"></div>
+          <img class="hero-icon" src="/brand/cerebro-icon.png" alt="" loading="eager" />
         </div>
 
         <div class="chat-log" id="chatLog" aria-live="polite">
-          <div class="chat-message system">CEO, estoy listo. Puedo ordenar prioridades, resumir el ecosistema y convertir decisiones en entregables visibles.</div>
+          <div class="chat-message system">Estoy listo para ayudarte a ordenar prioridades, detectar bloqueos y convertir decisiones en ejecucion.</div>
         </div>
 
         <form class="chat-form" id="chatForm">
@@ -975,7 +939,7 @@
   <label class="drawer-scrim" id="drawerScrim" for="drawerToggle" aria-hidden="true"></label>
   <aside class="mobile-drawer" id="mobileDrawer" aria-label="Menu mobile" aria-hidden="true">
     <div class="sidebar-brand">
-      <div class="brand-icon" aria-hidden="true"></div>
+      <img class="brand-icon" src="/brand/cerebro-icon.png" alt="" loading="eager" />
       <div>
         <strong>CEREBRO</strong>
         <span>Chief of Staff</span>
@@ -998,44 +962,6 @@
     </article>
   </aside>
 
-  <template id="cerebroIconTemplate">
-    <svg class="cerebro-icon" viewBox="0 0 220 260" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <defs>
-        <linearGradient id="skinGold" x1="44" y1="34" x2="178" y2="230" gradientUnits="userSpaceOnUse">
-          <stop stop-color="#f3dca8"/>
-          <stop offset="0.22" stop-color="#8d6a38"/>
-          <stop offset="0.56" stop-color="#1b1a17"/>
-          <stop offset="1" stop-color="#05070a"/>
-        </linearGradient>
-        <linearGradient id="neuralGold" x1="66" y1="55" x2="166" y2="178" gradientUnits="userSpaceOnUse">
-          <stop stop-color="#fff0bb"/>
-          <stop offset="0.52" stop-color="#d7a84d"/>
-          <stop offset="1" stop-color="#8d5a1d"/>
-        </linearGradient>
-      </defs>
-      <path d="M150 236c-4-29 10-55 8-79-3-36-29-62-66-61-25 1-44 15-52 36-9 23-3 45 14 61 7 6 7 17 3 26-4 10-7 20-5 28h98Z" fill="url(#skinGold)" opacity="0.62"/>
-      <path d="M137 47c31 8 50 33 50 65 0 25-10 45-29 60-6 5-8 12-6 19l10 45H92c-4-19 2-37 8-52 4-11 1-22-7-30-14-13-20-29-17-47 5-38 30-67 61-60Z" fill="#0b0d10" stroke="#b88a45" stroke-width="1.2" opacity="0.95"/>
-      <path d="M94 62c-32 10-51 33-57 66-3 17-1 29 6 39 7 11 18 16 32 17 16 1 28-5 38-17 8-10 12-22 14-37 3-25-5-50-33-68Z" fill="url(#skinGold)" opacity="0.86"/>
-      <path d="M47 130c13-4 24-4 35 3" stroke="#16120d" stroke-width="3" stroke-linecap="round" opacity="0.75"/>
-      <path d="M47 152c9 3 18 3 29 0" stroke="#c08f45" stroke-width="1.2" stroke-linecap="round" opacity="0.75"/>
-      <path d="M72 115c-10 1-17 5-22 12" stroke="#f0d49a" stroke-width="1.1" stroke-linecap="round" opacity="0.52"/>
-      <path d="M82 185c-9 5-17 16-19 28 12 2 25-2 34-10 8-8 11-18 9-29-8 1-16 4-24 11Z" fill="#100d0a" stroke="#b88a45" stroke-width="1" opacity="0.9"/>
-      <path d="M55 208c20-1 37-13 51-34" stroke="#e7bd68" stroke-width="2.2" stroke-linecap="round" opacity="0.65"/>
-      <path d="M94 196c8 10 11 24 8 41" stroke="#2a2216" stroke-width="5" stroke-linecap="round" opacity="0.8"/>
-      <path class="neural-line" d="M104 73h28l10 12h19" stroke="url(#neuralGold)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-      <path class="neural-line delay-a" d="M99 94h22l9 10v18l13 10h19" stroke="url(#neuralGold)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
-      <path class="neural-line delay-b" d="M114 135h20l10 13v20l13 12" stroke="url(#neuralGold)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
-      <path class="neural-line delay-a" d="M125 64v20l-12 12v20" stroke="url(#neuralGold)" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/>
-      <path class="neural-line delay-b" d="M149 94v27l-12 13" stroke="url(#neuralGold)" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/>
-      <circle class="neural-node" cx="104" cy="73" r="2.7" fill="#ffe8a4"/>
-      <circle class="neural-node delay-a" cx="142" cy="85" r="2.4" fill="#d7a84d"/>
-      <circle class="neural-node delay-b" cx="161" cy="85" r="2.2" fill="#f0d49a"/>
-      <circle class="neural-node delay-a" cx="99" cy="94" r="2.4" fill="#e0aa50"/>
-      <circle class="neural-node delay-b" cx="162" cy="132" r="2.5" fill="#ffe8a4"/>
-      <circle class="neural-node" cx="157" cy="180" r="2.4" fill="#d7a84d"/>
-    </svg>
-  </template>
-
   <script>
     const authStorageKey = "cerebro_auth_token";
     const conversationStorageKey = "cerebro_human_cabin_conversation";
@@ -1047,10 +973,8 @@
     }
 
     function mountIcons() {
-      const template = document.getElementById("cerebroIconTemplate");
       document.querySelectorAll(".brand-icon, .hero-icon").forEach((target) => {
-        target.innerHTML = "";
-        target.appendChild(template.content.firstElementChild.cloneNode(true));
+        if (target.tagName === "IMG") target.setAttribute("src", "/brand/cerebro-icon.png");
       });
     }
 
