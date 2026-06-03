@@ -11,6 +11,7 @@ Corregir quirurgicamente la capa visual de CEREBRO para acercarla a la referenci
 - Repo: `cerebro-app`
 - Base: `origin/main@2584110`
 - Worktree: `C:\Users\admin\Desktop\cerebro-app-visual-fix`
+- Commit visual: `c80bd5b fix cerebro premium visual identity implementation`
 
 ## Backup
 
@@ -72,6 +73,28 @@ Corregir quirurgicamente la capa visual de CEREBRO para acercarla a la referenci
 - Saludo generico `Hola, en que puedo ayudarte`: NO
 - Secrets expuestos en archivos tocados: NO
 
+## Validaciones produccion
+
+- URL: `https://cerebro-app-eta.vercel.app`
+- Deploy automatico Vercel: PASS
+- HTML productivo contiene `visual-20260603`: PASS
+- `/runtime/status`: 200
+- `/storage/status`: 200
+- Desktop produccion `1440x900`: PASS
+- Mobile produccion `390x844`: PASS
+- Sin overflow horizontal desktop: PASS
+- Sin overflow horizontal mobile: PASS
+- Header tecnico oculto en produccion: PASS
+- Input visible desktop: PASS
+- Input visible mobile: PASS
+- Menu hamburger mobile: PASS
+- Paneles secundarios ocultos mobile: PASS
+- Imagenes rotas produccion: 0
+- Console errors produccion: 0
+- HTML productivo contiene copy inicial correcto: PASS
+- `Centro de Direccion` en HTML productivo: NO
+- Saludo generico en HTML productivo: NO
+
 ## Pendiente
 
 Cuando el CEO entregue el asset oficial independiente, reemplazar:
@@ -86,4 +109,5 @@ por el icono final aprobado de figura humana pensativa.
 - Backend intacto: SI
 - OpenRouter intacto: SI
 - KV/persistencia intactos: SI
-- Listo para commit y deploy: SI
+- Deploy produccion: PASS
+- Correccion visual en produccion: PASS
