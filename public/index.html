@@ -474,7 +474,7 @@
 
     .chat-form {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 54px;
+      grid-template-columns: minmax(0, 1fr) 54px 54px;
       gap: 10px;
       padding: 10px;
       border-radius: 8px;
@@ -508,6 +508,31 @@
       color: #120f09;
       background: linear-gradient(145deg, #f0d49a, #c58d37);
       box-shadow: 0 14px 34px rgba(215, 168, 77, 0.18), inset 0 0 0 1px rgba(255, 255, 255, 0.22);
+    }
+
+    .voice-button {
+      display: grid;
+      width: 54px;
+      min-height: 54px;
+      place-items: center;
+      color: var(--champagne);
+      background:
+        linear-gradient(180deg, rgba(240, 212, 154, 0.14), rgba(240, 212, 154, 0.04)),
+        rgba(255, 255, 255, 0.035);
+      box-shadow: inset 0 0 0 1px rgba(240, 212, 154, 0.22), 0 14px 34px rgba(0, 0, 0, 0.22);
+    }
+
+    .voice-button.is-listening {
+      color: #120f09;
+      background: linear-gradient(145deg, #f5ddb0, #c58d37);
+      box-shadow: 0 0 0 1px rgba(240, 212, 154, 0.32), 0 18px 44px rgba(215, 168, 77, 0.18);
+    }
+
+    .voice-button:disabled,
+    .send-button:disabled {
+      cursor: not-allowed;
+      opacity: 0.56;
+      transform: none;
     }
 
     .summary-chips {
@@ -769,11 +794,13 @@
       }
 
       .chat-form {
-        grid-template-columns: minmax(0, 1fr) 50px;
+        grid-template-columns: minmax(0, 1fr) 48px 50px;
       }
 
-      .send-button {
+      .send-button,
+      .voice-button {
         width: 50px;
+        min-height: 50px;
       }
 
       .mobile-drawer,
@@ -1446,6 +1473,12 @@
 
         <form class="chat-form" id="chatForm">
           <textarea id="chatInput" rows="2" autocomplete="off" placeholder="Habla con CEREBRO como con tu Chief of Staff..."></textarea>
+          <button class="voice-button" id="voiceButton" type="button" aria-label="Dictar mensaje por voz" title="Dictar mensaje por voz">
+            <svg viewBox="0 0 24 24" width="19" height="19" fill="none" aria-hidden="true">
+              <path d="M12 4a3 3 0 0 0-3 3v5a3 3 0 0 0 6 0V7a3 3 0 0 0-3-3Z" stroke="currentColor" stroke-width="1.7"/>
+              <path d="M5 11a7 7 0 0 0 14 0M12 18v3m-4 0h8" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+            </svg>
+          </button>
           <button class="send-button" type="submit" aria-label="Enviar mensaje">
             <svg viewBox="0 0 24 24" width="20" height="20" fill="none" aria-hidden="true">
               <path d="M5 12h13m0 0-5-5m5 5-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
@@ -1530,10 +1563,25 @@
     const authStorageKey = "cerebro_auth_token";
     const conversationStorageKey = "cerebro_human_cabin_conversation";
     const protectedEndpointPatterns = [/^\/api\/activar$/, /^\/api\/resultado$/, /^\/api\/aprender$/];
-    let conversationId = localStorage.getItem(conversationStorageKey);
-    if (!conversationId) {
-      conversationId = `web_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    let conversationId = localStorage.getItem(conversationStorageKey) || "";
+    let recognitionInstance = null;
+    let listening = false;
+    let lastInputMode = "text";
+
+    function createConversationId() {
+      return `web_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    }
+
+    async function ensureConversationId() {
+      if (conversationId) return conversationId;
+      const data = await jsonFetch("/api/conversations?limit=1").catch(() => null);
+      if (data && data.latest_session_id) {
+        conversationId = data.latest_session_id;
+      } else {
+        conversationId = createConversationId();
+      }
       localStorage.setItem(conversationStorageKey, conversationId);
+      return conversationId;
     }
 
     function mountIcons() {
@@ -1586,6 +1634,33 @@
       log.scrollTop = log.scrollHeight;
     }
 
+    function removeThinkingMessage() {
+      const messages = Array.from(document.querySelectorAll("#chatLog .chat-message.system"));
+      const thinking = messages.reverse().find((node) => node.textContent === "CEREBRO esta pensando...");
+      if (thinking) thinking.remove();
+    }
+
+    function setVoiceState(state) {
+      const button = document.getElementById("voiceButton");
+      if (!button) return;
+      button.classList.toggle("is-listening", state === "listening");
+      button.disabled = state === "processing";
+      button.setAttribute("aria-pressed", state === "listening" ? "true" : "false");
+      button.setAttribute(
+        "aria-label",
+        state === "listening"
+          ? "Cancelar dictado por voz"
+          : state === "processing"
+            ? "Procesando voz"
+            : "Dictar mensaje por voz"
+      );
+      button.title = state === "listening"
+        ? "Cancelar dictado"
+        : state === "processing"
+          ? "Procesando voz"
+          : "Dictar mensaje por voz";
+    }
+
     function renderMemory(snapshot) {
       const counts = snapshot.counts || {};
       const backend = snapshot.memory_backend || snapshot.memory && snapshot.memory.memory_backend || {};
@@ -1620,11 +1695,19 @@
     }
 
     async function loadConversation() {
+      await ensureConversationId();
       const data = await jsonFetch(`/api/conversations/${conversationId}`);
       const log = document.getElementById("chatLog");
       if (data.messages && data.messages.length) {
         log.innerHTML = "";
         data.messages.slice(-18).forEach((message) => addChatMessage(message.role, message.content));
+      } else if (!data.persisted) {
+        const recent = await jsonFetch("/api/conversations?limit=1").catch(() => null);
+        if (recent && recent.latest_session_id && recent.latest_session_id !== conversationId) {
+          conversationId = recent.latest_session_id;
+          localStorage.setItem(conversationStorageKey, conversationId);
+          return loadConversation();
+        }
       }
     }
 
@@ -1659,35 +1742,95 @@
       }
     });
 
+    function startVoiceInput() {
+      const Recognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!Recognition) {
+        addChatMessage("system", "Voz no disponible en este navegador. Escribe el mensaje y sigo por texto.");
+        return;
+      }
+      if (listening && recognitionInstance) {
+        recognitionInstance.abort();
+        return;
+      }
+      recognitionInstance = new Recognition();
+      recognitionInstance.lang = "es-ES";
+      recognitionInstance.interimResults = false;
+      recognitionInstance.maxAlternatives = 1;
+      recognitionInstance.onstart = () => {
+        listening = true;
+        setVoiceState("listening");
+        addChatMessage("system", "Escuchando...");
+      };
+      recognitionInstance.onend = () => {
+        listening = false;
+        recognitionInstance = null;
+        setVoiceState("idle");
+      };
+      recognitionInstance.onerror = () => {
+        listening = false;
+        recognitionInstance = null;
+        setVoiceState("idle");
+        addChatMessage("system", "No pude tomar audio ahora. Escribe el mensaje y sigo por texto.");
+      };
+      recognitionInstance.onresult = (event) => {
+        const transcript = event.results && event.results[0] && event.results[0][0]
+          ? event.results[0][0].transcript
+          : "";
+        const cleanTranscript = transcript.trim();
+        if (!cleanTranscript) return;
+        setVoiceState("processing");
+        lastInputMode = "voice";
+        const input = document.getElementById("chatInput");
+        input.value = cleanTranscript;
+        document.getElementById("chatForm").requestSubmit();
+      };
+      recognitionInstance.start();
+    }
+
+    document.getElementById("voiceButton").addEventListener("click", startVoiceInput);
+
     document.getElementById("chatForm").addEventListener("submit", async (event) => {
       event.preventDefault();
+      await ensureConversationId();
       const input = document.getElementById("chatInput");
       const message = input.value.trim();
       if (!message) return;
       input.value = "";
       input.disabled = true;
+      document.getElementById("voiceButton").disabled = true;
       addChatMessage("user", message);
       addChatMessage("system", "CEREBRO esta pensando...");
       try {
         const response = await fetch("/api/chat", {
           method: "POST",
           headers: { "content-type": "application/json" },
-          body: JSON.stringify({ message, session_id: conversationId, context: { origin: "chief_of_staff_os" } }),
+          body: JSON.stringify({
+            message,
+            session_id: conversationId,
+            context: { origin: "chief_of_staff_os", input_mode: lastInputMode },
+          }),
         });
         const data = await response.json();
-        const thinking = document.querySelector("#chatLog .chat-message.system:last-child");
-        if (thinking && thinking.textContent === "CEREBRO esta pensando...") thinking.remove();
+        removeThinkingMessage();
         if (data.session_id) {
           conversationId = data.session_id;
           localStorage.setItem(conversationStorageKey, conversationId);
         }
-        addChatMessage("assistant", data.reply || "CEO, no recibi una respuesta util.");
+        if (!response.ok || data.success === false) {
+          addChatMessage("assistant", data.reply || data.message || "CEO, el chat devolvio un error verificable.");
+        } else {
+          addChatMessage("assistant", data.reply || "CEO, no recibi una respuesta util.");
+        }
         const state = await jsonFetch("/api/human-cabin/state");
         if (state.success) renderEcosystemSummary(state.snapshot);
       } catch (error) {
+        removeThinkingMessage();
         addChatMessage("assistant", `CEO, no pude contactar el chat: ${error.message}`);
       } finally {
         input.disabled = false;
+        document.getElementById("voiceButton").disabled = false;
+        lastInputMode = "text";
+        setVoiceState("idle");
         input.focus();
       }
     });

@@ -1,4 +1,6 @@
 const assert = require("assert");
+const fs = require("fs");
+const path = require("path");
 process.env.CEREBRO_AUTH_TOKEN = process.env.CEREBRO_AUTH_TOKEN || "test-auth-token";
 process.env.ANTHROPIC_API_KEY = "";
 process.env.OPENROUTER_API_KEY = "";
@@ -124,6 +126,22 @@ async function request(method, path, body, options = {}) {
   assert.strictEqual(conversation.success, true);
   assert.ok(conversation.messages.length >= 2);
 
+  const conversations = await request("GET", "/api/conversations?limit=1", null, { auth: false });
+  assert.strictEqual(conversations.success, true);
+  assert.ok(conversations.latest_session_id);
+  assert.strictEqual(conversations.conversations.length, 1);
+
+  await request("POST", "/api/chat", {
+    session_id: "test_ceo_context",
+    message: "Estamos corrigiendo CEREBRO.",
+  }, { auth: false });
+  const contextReply = await request("POST", "/api/chat", {
+    session_id: "test_ceo_context",
+    message: "Que estamos haciendo ahora?",
+  }, { auth: false });
+  assert.strictEqual(contextReply.success, true);
+  assert.ok(contextReply.reply.includes("corrigiendo CEREBRO"));
+
   const deliverables = await request("GET", "/api/deliverables", null, { auth: false });
   assert.strictEqual(deliverables.success, true);
   assert.ok(deliverables.deliverables.some((item) => item.filename === "ECOSYSTEM_APPS_REPORT.md"));
@@ -197,6 +215,11 @@ async function request(method, path, body, options = {}) {
 
   const humanCabinAfterAgent = await request("GET", "/api/human-cabin/state", null, { auth: false });
   assert.ok(humanCabinAfterAgent.snapshot.local_agent.tasks.total >= 1);
+
+  const humanCabinHtml = fs.readFileSync(path.join(__dirname, "..", "public", "index.html"), "utf8");
+  assert.ok(humanCabinHtml.includes("Estoy listo para ayudarte a ordenar prioridades, detectar bloqueos y convertir decisiones en ejecuci"));
+  assert.ok(humanCabinHtml.includes("id=\"voiceButton\""));
+  assert.ok(humanCabinHtml.includes("SpeechRecognition"));
 
   const snapshot = getEnterpriseReadinessSnapshot();
   assert.strictEqual(snapshot.certification.strategic_authority_ready, false);

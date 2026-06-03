@@ -47,7 +47,7 @@ function boundedProviderMaxTokens(provider, requestedMaxTokens) {
     ? Number(requestedMaxTokens)
     : 800;
   if (provider !== "openrouter") return requested;
-  const openRouterCap = intEnvFirst(20, "CEREBRO_OPENROUTER_MAX_TOKENS", "OPENROUTER_MAX_TOKENS");
+  const openRouterCap = intEnvFirst(1200, "CEREBRO_OPENROUTER_MAX_TOKENS", "OPENROUTER_MAX_TOKENS");
   return Math.max(1, Math.min(requested, openRouterCap));
 }
 
@@ -454,6 +454,80 @@ function appendConversationMessage(session, role, content, meta = {}) {
   }
 }
 
+function getConversationSummaries(limit = 12) {
+  const store = readConversationStore();
+  return store.sessions
+    .slice()
+    .sort((a, b) => String(b.updated_at || "").localeCompare(String(a.updated_at || "")))
+    .slice(0, limit)
+    .map((session) => ({
+      session_id: session.session_id,
+      title: session.title || "Conversacion con CEREBRO",
+      updated_at: session.updated_at,
+      created_at: session.created_at,
+      message_count: Array.isArray(session.messages) ? session.messages.length : 0,
+      last_message: Array.isArray(session.messages) && session.messages.length
+        ? limitText(session.messages[session.messages.length - 1].content, 180)
+        : "",
+    }));
+}
+
+function getProviderConversationHistory(session, limit = 10) {
+  const messages = Array.isArray(session && session.messages) ? session.messages : [];
+  const recent = messages
+    .filter((message) => ["user", "assistant"].includes(message.role) && message.content)
+    .slice(-limit);
+  const last = recent[recent.length - 1];
+  const withoutCurrentUser = last && last.role === "user" ? recent.slice(0, -1) : recent;
+  return withoutCurrentUser.map((message) => ({
+    role: message.role,
+    content: limitText(message.content, 1400),
+  }));
+}
+
+function conversationContextSummary(session) {
+  const messages = Array.isArray(session && session.messages) ? session.messages : [];
+  return messages
+    .slice(-8)
+    .map((message) => `${message.role}: ${limitText(message.content, 220)}`)
+    .join("\n");
+}
+
+async function flushCriticalPersistence(files) {
+  const storage = getPersistentStorageConfig();
+  const localDurable = !process.env.VERCEL;
+  const result = {
+    storage_enabled: storage.enabled,
+    backend: storage.backend,
+    success: localDurable || storage.enabled,
+    files: {},
+    errors: [],
+  };
+
+  for (const file of files) {
+    const key = path.basename(file, ".json");
+    if (localDurable) {
+      result.files[key] = true;
+      continue;
+    }
+    if (!storage.enabled) {
+      result.files[key] = false;
+      result.errors.push(`${key}:persistent_storage_disabled`);
+      continue;
+    }
+    try {
+      await flushPersistentFile(file);
+      result.files[key] = true;
+    } catch (error) {
+      result.files[key] = false;
+      result.errors.push(`${key}:${error.message}`);
+    }
+  }
+
+  result.success = Object.values(result.files).every(Boolean);
+  return result;
+}
+
 function getRecentDeliverables(limit = 12) {
   const store = leerJSON(DELIVERABLES_FILE, { items: [] });
   return Array.isArray(store.items) ? store.items.slice(0, limit) : [];
@@ -515,10 +589,29 @@ function buildExecutiveSnapshot() {
   };
 }
 
-function fallbackChatReply(message, snapshot, governance) {
+function fallbackChatReply(message, snapshot, governance, session = null) {
   const text = normalizeText(message);
   if (governance && governance.status === "blocked") {
     return `CEO, no ejecuto eso. La peticion esta bloqueada por gobierno: ${governance.reason}. Puedo ayudarte a reformularla de forma segura.`;
+  }
+  if (text.includes("que estamos haciendo ahora") || text.includes("estamos haciendo ahora")) {
+    const context = conversationContextSummary(session);
+    if (normalizeText(context).includes("corrigiendo cerebro")) {
+      return [
+        "Estamos corrigiendo CEREBRO como incidente critico de producto.",
+        "",
+        "Orden actual:",
+        "1. Persistencia real de conversaciones.",
+        "2. Conversacion real con memoria y respuestas completas.",
+        "3. Voz en la Human Cabin.",
+        "4. Mobile usable.",
+        "5. Visual premium despues de validar lo anterior.",
+        "",
+        "No estoy tocando FORJA, DCFT ni otros proyectos.",
+        "",
+        "Primer paso exacto: validar que esta conversacion se conserva al recargar y volver a abrir."
+      ].join("\n");
+    }
   }
   if (text.includes("aplicaciones") || text.includes("apps")) {
     const apps = snapshot.apps.map((app) => `- ${app.name}: ${app.status} (${app.role})`).join("\n");
@@ -533,13 +626,78 @@ function fallbackChatReply(message, snapshot, governance) {
   if (text.includes("construyendo") || text.includes("ecosistema") || text.includes("proyectos")) {
     return `CEO, estamos construyendo un ecosistema IA operativo con FORJA como referencia productiva y CEREBRO como cabina ejecutiva. Proyectos activos:\n\n${(snapshot.projects || []).map((item) => `- ${item}`).join("\n")}`;
   }
-  return "CEO, estoy operativo. Puedo ordenar prioridades, explicar el estado del ecosistema, registrar decisiones, detectar bloqueos y generar entregables visibles desde la Human Cabin.";
+  return [
+    "Entendido. Voy a tratarlo como una decision operativa, no como una conversacion generica.",
+    "",
+    "Objetivo:",
+    "Ordenar la solicitud y convertirla en pasos ejecutables.",
+    "",
+    "Plan:",
+    "1. Confirmar alcance.",
+    "2. Revisar evidencia disponible.",
+    "3. Identificar riesgos.",
+    "4. Definir que no se toca.",
+    "5. Ejecutar el primer paso seguro.",
+    "",
+    "No voy a tocar FORJA, CEREBRO productivo, secrets ni deploys sin confirmacion explicita.",
+    "",
+    "Primer paso exacto: dime que resultado quieres obtener y lo convierto en plan operativo."
+  ].join("\n");
 }
 
 function buildChatSystemPrompt(snapshot) {
   const apps = (snapshot.apps || []).map((app) => app.name).join(", ") || "sin apps";
-  return `Eres CEREBRO. Responde en espanol, breve y util. No reveles secrets.
-Memoria: apps=${limitText(apps, 180)}. Bloqueos=${limitText((snapshot.blockers || []).join("; "), 180)}.`;
+  const priorities = (snapshot.priorities || []).join("; ") || "sin prioridades registradas";
+  const blockers = (snapshot.blockers || []).join("; ") || "sin bloqueos registrados";
+  const projects = (snapshot.projects || []).join("; ") || "sin proyectos registrados";
+  return `Eres CEREBRO, Chief of Staff ejecutivo del ecosistema.
+
+Identidad:
+- Producto: CEREBRO.
+- Rol: Chief of Staff.
+- Concepto: la segunda mente mas importante de la organizacion.
+- Idioma: espanol claro, ejecutivo y accionable.
+
+Estilo obligatorio:
+- No respondas como chatbot generico.
+- No des teoria innecesaria.
+- No digas que algo esta terminado sin evidencia.
+- No reveles secrets, tokens, claves ni variables sensibles.
+- No prometas deploys, pushes, cambios irreversibles ni acciones criticas sin confirmacion humana.
+
+Para solicitudes operativas responde con esta estructura cuando aplique:
+1. Entendimiento claro.
+2. Objetivo.
+3. Plan por pasos.
+4. Riesgos.
+5. Que NO voy a tocar.
+6. Primer paso exacto.
+7. Confirmacion requerida si hay riesgo.
+
+Memoria operativa actual:
+- Apps: ${limitText(apps, 260)}
+- Proyectos: ${limitText(projects, 360)}
+- Prioridades: ${limitText(priorities, 360)}
+- Bloqueos: ${limitText(blockers, 360)}
+- Conversaciones persistidas: ${snapshot.counts ? snapshot.counts.conversations : 0}
+- Entregables visibles: ${snapshot.counts ? snapshot.counts.deliverables : 0}
+`;
+}
+
+function buildChatUserContent({ message, governance, deliverableRequest, snapshot, session }) {
+  return [
+    `Mensaje del CEO: ${limitText(message, 1600)}`,
+    `Gobierno: ${governance.status}`,
+    deliverableRequest ? `Entregable solicitado: ${deliverableRequest.filename}` : "Entregable solicitado: no",
+    "",
+    "Contexto reciente de la conversacion:",
+    conversationContextSummary(session) || "Sin historial previo visible.",
+    "",
+    "Estado resumido del ecosistema:",
+    `Apps: ${(snapshot.apps || []).map((app) => `${app.name}=${app.status}`).join(", ") || "ninguna"}`,
+    `Prioridades: ${(snapshot.priorities || []).join(" | ") || "ninguna"}`,
+    `Bloqueos: ${(snapshot.blockers || []).join(" | ") || "ninguno"}`,
+  ].join("\n");
 }
 
 function buildDeliverableContent({ filename, message, reply, snapshot }) {
@@ -2184,10 +2342,21 @@ function recordOperationalMemory(event) {
   guardarJSON(OPERATIONAL_MEMORY_FILE, store);
 }
 
-async function executeProvider({ provider = resolveProviderId(), system, userContent, maxTokens = 800 }) {
+async function executeProvider({ provider = resolveProviderId(), system, userContent, maxTokens = 800, conversationMessages = [] }) {
   const profile = PROVIDER_CONFIG[provider];
   if (!profile) throw new Error("provider_not_registered");
   if (!profile.enabled) throw new Error("provider_missing_credentials");
+  const safeHistory = (conversationMessages || [])
+    .filter((message) => ["user", "assistant"].includes(message.role) && message.content)
+    .slice(-10)
+    .map((message) => ({
+      role: message.role,
+      content: limitText(message.content, 1400),
+    }));
+  const providerMessages = [
+    ...safeHistory,
+    { role: "user", content: typeof userContent === "string" ? userContent : JSON.stringify(userContent) },
+  ];
 
   if (provider === "anthropic") {
     const response = await axios.post(
@@ -2196,7 +2365,7 @@ async function executeProvider({ provider = resolveProviderId(), system, userCon
         model: profile.model,
         max_tokens: maxTokens,
         system,
-        messages: [{ role: "user", content: typeof userContent === "string" ? userContent : JSON.stringify(userContent) }],
+        messages: providerMessages,
       },
       {
         headers: {
@@ -2221,7 +2390,7 @@ async function executeProvider({ provider = resolveProviderId(), system, userCon
             model: profile.model,
             messages: [
               { role: "system", content: system },
-              { role: "user", content: typeof userContent === "string" ? userContent : JSON.stringify(userContent) },
+              ...providerMessages,
             ],
             temperature: 0.2,
             max_tokens: tokenBudget,
@@ -2252,7 +2421,7 @@ async function executeProvider({ provider = resolveProviderId(), system, userCon
         model: profile.model,
         messages: [
           { role: "system", content: system },
-          { role: "user", content: typeof userContent === "string" ? userContent : JSON.stringify(userContent) },
+          ...providerMessages,
         ],
         temperature: 0.2,
         max_tokens: maxTokens,
@@ -2532,6 +2701,17 @@ app.get("/api/human-cabin/state", (_req, res) => {
       mobile_responsive: true,
     },
     snapshot,
+  });
+});
+
+app.get("/api/conversations", (req, res) => {
+  const limit = Math.max(1, Math.min(Number.parseInt(req.query.limit || "12", 10) || 12, 25));
+  const conversations = getConversationSummaries(limit);
+  res.json({
+    success: true,
+    conversations,
+    latest_session_id: conversations[0] ? conversations[0].session_id : null,
+    persistent_storage: getPersistentStorageSnapshot(),
   });
 });
 
@@ -2944,24 +3124,23 @@ app.post("/api/chat", async (req, res) => {
   let providerError = null;
 
   if (governance.status === "blocked") {
-    reply = fallbackChatReply(message, snapshot, governance);
+      reply = fallbackChatReply(message, snapshot, governance, session);
   } else if (provider.provider_ready) {
     try {
       reply = await executeProvider({
         system: buildChatSystemPrompt(snapshot),
-        userContent: deliverableRequest
-          ? `Mensaje: ${limitText(message, 320)}\nEntregable solicitado: ${deliverableRequest.filename}\nGobierno: ${governance.status}`
-          : `Mensaje: ${limitText(message, 320)}\nGobierno: ${governance.status}`,
-        maxTokens: deliverableRequest ? 1300 : 700,
+        userContent: buildChatUserContent({ message, governance, deliverableRequest, snapshot, session }),
+        conversationMessages: getProviderConversationHistory(session),
+        maxTokens: deliverableRequest ? 1800 : 1300,
       });
-      if (!reply) reply = fallbackChatReply(message, snapshot, governance);
+      if (!reply) reply = fallbackChatReply(message, snapshot, governance, session);
     } catch (error) {
       providerError = error.message;
       provider = { ...provider, status: "DEGRADED_PROVIDER_ERROR", provider_ready: false };
-      reply = fallbackChatReply(message, snapshot, governance);
+      reply = fallbackChatReply(message, snapshot, governance, session);
     }
   } else {
-    reply = fallbackChatReply(message, snapshot, governance);
+    reply = fallbackChatReply(message, snapshot, governance, session);
   }
 
   let deliverable = null;
@@ -3028,16 +3207,30 @@ app.post("/api/chat", async (req, res) => {
     decisionTrace: trace,
     error: providerError,
   });
+  const persistence = await flushCriticalPersistence([
+    CONVERSATIONS_FILE,
+    MEMORY_FILE,
+    OPERATIONAL_MEMORY_FILE,
+    DECISION_TRACE_FILE,
+    WORKFLOW_TRACE_FILE,
+    DELIVERABLES_FILE,
+    LOCAL_AGENT_TASKS_FILE,
+  ]);
 
   res.json({
     success: true,
-    status: providerError ? "completed_with_fallback" : "ok",
+    status: providerError
+      ? "completed_with_fallback"
+      : persistence.success
+        ? "ok"
+        : "completed_with_persistence_warning",
     provider: provider.default_provider,
     provider_status: provider.status,
     reply,
     session_id: session.session_id,
-    conversation_persisted: true,
-    memory_persisted: true,
+    conversation_persisted: Boolean(persistence.files.conversations),
+    memory_persisted: Boolean(persistence.files.memoria && persistence.files.operational_memory),
+    persistence,
     deliverable,
     local_agent_task: localAgentTask,
     governance,
