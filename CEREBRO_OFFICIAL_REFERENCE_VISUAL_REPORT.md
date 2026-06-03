@@ -32,11 +32,7 @@ URL oficial:
 
 `https://cerebro-app-eta.vercel.app`
 
-Deploy Vercel final:
-
-`https://cerebro-3se7k6kbp-danielglezsolucionador-boops-projects.vercel.app`
-
-Alias:
+Alias productivo validado:
 
 `https://cerebro-app-eta.vercel.app`
 
