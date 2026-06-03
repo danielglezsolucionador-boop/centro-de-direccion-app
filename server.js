@@ -25,7 +25,7 @@ const ECOSYSTEM_MEMORY_FILE = path.join(DATA_DIR, "ecosystem_memory.json");
 const DELIVERABLES_DIR = path.join(DATA_DIR, "deliverables");
 const LOCAL_AGENT_REGISTRY_FILE = path.join(DATA_DIR, "local_agent_registry.json");
 const LOCAL_AGENT_TASKS_FILE = path.join(DATA_DIR, "local_agent_tasks.json");
-const OPENROUTER_DEFAULT_MAX_TOKENS = 18000;
+const OPENROUTER_DEFAULT_MAX_TOKENS = 1800;
 
 function envFirst(...names) {
   for (const name of names) {

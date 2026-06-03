@@ -59,9 +59,13 @@ async function request(method, path, body, options = {}) {
 (async () => {
   const previousOpenRouterCap = process.env.CEREBRO_OPENROUTER_MAX_TOKENS;
   delete process.env.CEREBRO_OPENROUTER_MAX_TOKENS;
-  assert.strictEqual(boundedProviderMaxTokens("openrouter", 18000), 18000);
-  process.env.CEREBRO_OPENROUTER_MAX_TOKENS = "1";
-  assert.strictEqual(boundedProviderMaxTokens("openrouter", 18000), 18000);
+  assert.strictEqual(boundedProviderMaxTokens("openrouter", 18000), 1800);
+  for (const unsafeCap of ["1", "8", "20"]) {
+    process.env.CEREBRO_OPENROUTER_MAX_TOKENS = unsafeCap;
+    assert.strictEqual(boundedProviderMaxTokens("openrouter", 18000), 1800);
+  }
+  process.env.CEREBRO_OPENROUTER_MAX_TOKENS = "2500";
+  assert.strictEqual(boundedProviderMaxTokens("openrouter", 2500), 2500);
   if (previousOpenRouterCap === undefined) delete process.env.CEREBRO_OPENROUTER_MAX_TOKENS;
   else process.env.CEREBRO_OPENROUTER_MAX_TOKENS = previousOpenRouterCap;
 
@@ -77,13 +81,13 @@ async function request(method, path, body, options = {}) {
     provider: "openrouter",
     system: "Sistema de prueba",
     userContent: "Mensaje de prueba",
-    maxTokens: 18000,
+    maxTokens: 1800,
   });
   axios.post = originalAxiosPost;
   if (previousOpenRouterKey === undefined) delete process.env.OPENROUTER_API_KEY;
   else process.env.OPENROUTER_API_KEY = previousOpenRouterKey;
   assert.strictEqual(providerText, "respuesta completa");
-  assert.strictEqual(capturedOpenRouterPayload.max_tokens, 18000);
+  assert.strictEqual(capturedOpenRouterPayload.max_tokens, 1800);
 
   const safe = classifyAction({ propuesta: "evaluar una oportunidad comercial reversible" });
   assert.strictEqual(safe.status, "allowed");
@@ -110,8 +114,8 @@ async function request(method, path, body, options = {}) {
   const runtime = await request("GET", "/runtime/status");
   assert.strictEqual(runtime.governance_first, true);
   assert.strictEqual(runtime.direct_provider_calls, false);
-  assert.strictEqual(runtime.openrouter_token_budget.default_max_tokens, 18000);
-  assert.strictEqual(runtime.openrouter_token_budget.effective_max_tokens, 18000);
+  assert.strictEqual(runtime.openrouter_token_budget.default_max_tokens, 1800);
+  assert.strictEqual(runtime.openrouter_token_budget.effective_max_tokens, 1800);
   assert.strictEqual(runtime.enterprise_ready, false);
   assert.ok(runtime.workflow_continuity);
   assert.ok(runtime.memory_continuity);
