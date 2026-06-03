@@ -1573,11 +1573,21 @@
     }
 
     async function ensureConversationId() {
-      if (conversationId) return conversationId;
       const data = await jsonFetch("/api/conversations?limit=1").catch(() => null);
-      if (data && data.latest_session_id) {
-        conversationId = data.latest_session_id;
-      } else {
+      const latest = data && data.conversations && data.conversations[0] ? data.conversations[0] : null;
+      if (latest && latest.session_id) {
+        if (!conversationId) {
+          conversationId = latest.session_id;
+        } else if (latest.session_id !== conversationId) {
+          const current = await jsonFetch(`/api/conversations/${conversationId}`).catch(() => null);
+          const currentTime = current && current.updated_at ? Date.parse(current.updated_at) : 0;
+          const latestTime = latest.updated_at ? Date.parse(latest.updated_at) : 0;
+          if (!current || !current.persisted || latestTime > currentTime) {
+            conversationId = latest.session_id;
+          }
+        }
+      }
+      if (!conversationId) {
         conversationId = createConversationId();
       }
       localStorage.setItem(conversationStorageKey, conversationId);
