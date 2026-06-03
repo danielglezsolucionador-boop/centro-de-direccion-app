@@ -89,7 +89,7 @@ Corregir quirurgicamente la capa visual de CEREBRO para acercarla a la referenci
 
 - URL: `https://cerebro-app-eta.vercel.app`
 - Deploy automatico Vercel: PASS
-- HTML productivo contiene `neural-20260603`: Pendiente post-push
+- HTML productivo contiene `neural-20260603`: PASS
 - `/runtime/status`: 200
 - `/storage/status`: 200
 - Desktop produccion `1440x900`: PASS
@@ -104,8 +104,12 @@ Corregir quirurgicamente la capa visual de CEREBRO para acercarla a la referenci
 - Imagenes rotas produccion: 0
 - Console errors produccion: 0
 - HTML productivo contiene copy inicial correcto: PASS
-- Animacion neuronal produccion: Pendiente post-push
-- `prefers-reduced-motion` produccion: Pendiente post-push
+- Animacion neuronal produccion: PASS
+- `prefers-reduced-motion` produccion: PASS
+- `brand-mark` produccion: 4
+- `neural-overlay` produccion: 4
+- Desktop produccion animation-name: `neuralImpulse` / `neuralNodePulse`
+- Mobile produccion animation-name: `neuralImpulse` / `neuralNodePulse`
 - `Centro de Direccion` en HTML productivo: NO
 - Saludo generico en HTML productivo: NO
 
@@ -125,4 +129,4 @@ por el icono final aprobado de figura humana pensativa.
 - KV/persistencia intactos: SI
 - Deploy produccion: PASS
 - Correccion visual en produccion: PASS
-- Animacion neuronal: PASS local / pendiente produccion
+- Animacion neuronal: PASS local / PASS produccion
