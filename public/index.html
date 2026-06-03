@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CEREBRO | Chief of Staff</title>
-  <link rel="icon" href="/brand/cerebro-icon.png?v=visual-20260603" />
+  <link rel="icon" href="/brand/cerebro-icon.png?v=neural-20260603" />
   <style>
     :root {
       color-scheme: dark;
@@ -280,6 +280,11 @@
     }
 
     .sidebar-brand .brand-icon {
+      width: 48px;
+      height: 48px;
+    }
+
+    .sidebar-brand .brand-mark {
       width: 48px;
       height: 48px;
     }
@@ -863,6 +868,133 @@
         0 0 32px rgba(215, 168, 77, 0.12);
     }
 
+    .brand-mark {
+      position: relative;
+      isolation: isolate;
+      flex: 0 0 auto;
+      display: grid;
+      width: 56px;
+      height: 56px;
+      place-items: center;
+      border-radius: 24%;
+    }
+
+    .brand-mark .brand-icon,
+    .brand-mark .hero-icon {
+      width: 100%;
+      height: 100%;
+    }
+
+    .brand-mark::after {
+      position: absolute;
+      inset: 8%;
+      z-index: 2;
+      pointer-events: none;
+      content: "";
+      border-radius: inherit;
+      background: linear-gradient(112deg, transparent 0 42%, rgba(240, 212, 154, 0.18) 48%, transparent 56% 100%);
+      mix-blend-mode: screen;
+      opacity: 0;
+      transform: translateX(-70%);
+      animation: neuralSheen 9.5s ease-in-out infinite;
+    }
+
+    .neural-overlay {
+      position: absolute;
+      inset: 19%;
+      z-index: 3;
+      width: 62%;
+      height: 62%;
+      pointer-events: none;
+      opacity: 0.72;
+      mix-blend-mode: screen;
+      filter: drop-shadow(0 0 6px rgba(240, 212, 154, 0.22));
+    }
+
+    .neural-line {
+      fill: none;
+      stroke: rgba(240, 212, 154, 0.74);
+      stroke-width: 2.2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 5 34;
+      animation: neuralImpulse 7.8s linear infinite;
+    }
+
+    .neural-line.two {
+      animation-delay: -2.4s;
+      opacity: 0.72;
+    }
+
+    .neural-line.three {
+      animation-delay: -4.6s;
+      opacity: 0.58;
+    }
+
+    .neural-node {
+      fill: rgba(240, 212, 154, 0.78);
+      opacity: 0.28;
+      transform-origin: center;
+      animation: neuralNodePulse 6.6s ease-in-out infinite;
+    }
+
+    .neural-node.two {
+      animation-delay: -1.8s;
+    }
+
+    .neural-node.three {
+      animation-delay: -3.5s;
+    }
+
+    @keyframes neuralImpulse {
+      0% {
+        stroke-dashoffset: 42;
+        opacity: 0.1;
+      }
+      16% {
+        opacity: 0.62;
+      }
+      54% {
+        opacity: 0.42;
+      }
+      100% {
+        stroke-dashoffset: -46;
+        opacity: 0.1;
+      }
+    }
+
+    @keyframes neuralNodePulse {
+      0%,
+      100% {
+        opacity: 0.16;
+        transform: scale(0.88);
+      }
+      45% {
+        opacity: 0.68;
+        transform: scale(1.08);
+      }
+      62% {
+        opacity: 0.24;
+        transform: scale(0.96);
+      }
+    }
+
+    @keyframes neuralSheen {
+      0%,
+      72%,
+      100% {
+        opacity: 0;
+        transform: translateX(-72%);
+      }
+      82% {
+        opacity: 0.52;
+      }
+      92% {
+        opacity: 0;
+        transform: translateX(72%);
+      }
+    }
+
     .brand-copy strong,
     .sidebar-brand strong,
     .chat-title h1 {
@@ -964,6 +1096,17 @@
       width: clamp(94px, 10vw, 138px);
       height: clamp(94px, 10vw, 138px);
       padding: 7px;
+    }
+
+    .hero-mark {
+      width: clamp(94px, 10vw, 138px);
+      height: clamp(94px, 10vw, 138px);
+    }
+
+    .hero-mark .neural-overlay {
+      inset: 20%;
+      width: 60%;
+      height: 60%;
     }
 
     .chat-log {
@@ -1080,6 +1223,11 @@
         padding: 4px;
       }
 
+      .brand-mark {
+        width: 42px;
+        height: 42px;
+      }
+
       .brand-copy strong {
         font-size: 1.18rem;
         letter-spacing: 0.18em;
@@ -1102,6 +1250,11 @@
         width: 58px;
         height: 58px;
         padding: 4px;
+      }
+
+      .hero-mark {
+        width: 58px;
+        height: 58px;
       }
 
       .chat-title h1 {
@@ -1177,6 +1330,22 @@
         min-height: 390px;
       }
     }
+
+    @media (prefers-reduced-motion: reduce) {
+      .brand-mark::after,
+      .neural-line,
+      .neural-node {
+        animation: none;
+      }
+
+      .brand-mark::after {
+        opacity: 0;
+      }
+
+      .neural-overlay {
+        opacity: 0.24;
+      }
+    }
   </style>
 </head>
 <body>
@@ -1187,7 +1356,17 @@
         <span></span>
       </label>
       <div class="brand">
-        <img class="brand-icon" src="/brand/cerebro-icon.png?v=visual-20260603" alt="" loading="eager" />
+        <span class="brand-mark" aria-hidden="true">
+          <img class="brand-icon" src="/brand/cerebro-icon.png?v=neural-20260603" alt="" loading="eager" />
+          <svg class="neural-overlay" viewBox="0 0 100 100" focusable="false">
+            <path class="neural-line one" d="M20 58 C34 42, 48 42, 62 27" />
+            <path class="neural-line two" d="M27 72 C43 62, 55 61, 76 44" />
+            <path class="neural-line three" d="M32 28 C48 35, 56 46, 70 67" />
+            <circle class="neural-node one" cx="62" cy="27" r="3" />
+            <circle class="neural-node two" cx="76" cy="44" r="2.7" />
+            <circle class="neural-node three" cx="70" cy="67" r="2.5" />
+          </svg>
+        </span>
         <div class="brand-copy">
           <strong>CEREBRO</strong>
           <span>Chief of Staff</span>
@@ -1205,7 +1384,17 @@
     <section class="office" aria-label="Despacho privado del Chief of Staff">
       <aside class="sidebar" aria-label="Navegacion principal">
         <div class="sidebar-brand">
-          <img class="brand-icon" src="/brand/cerebro-icon.png?v=visual-20260603" alt="" loading="eager" />
+          <span class="brand-mark" aria-hidden="true">
+            <img class="brand-icon" src="/brand/cerebro-icon.png?v=neural-20260603" alt="" loading="eager" />
+            <svg class="neural-overlay" viewBox="0 0 100 100" focusable="false">
+              <path class="neural-line one" d="M20 58 C34 42, 48 42, 62 27" />
+              <path class="neural-line two" d="M27 72 C43 62, 55 61, 76 44" />
+              <path class="neural-line three" d="M32 28 C48 35, 56 46, 70 67" />
+              <circle class="neural-node one" cx="62" cy="27" r="3" />
+              <circle class="neural-node two" cx="76" cy="44" r="2.7" />
+              <circle class="neural-node three" cx="70" cy="67" r="2.5" />
+            </svg>
+          </span>
           <div>
             <strong>CEREBRO</strong>
             <span>Chief of Staff</span>
@@ -1236,9 +1425,19 @@
           <div class="chat-title">
             <p class="eyebrow">La segunda mente más importante de la organización</p>
             <h1>CEREBRO</h1>
-            <p class="subtitle">Chief of Staff</p>
+            <p class="subtitle">Chief of Staff ejecutivo para convertir contexto, prioridades y decisiones en dirección clara.</p>
           </div>
-          <img class="hero-icon" src="/brand/cerebro-icon.png?v=visual-20260603" alt="" loading="eager" />
+          <span class="brand-mark hero-mark" aria-hidden="true">
+            <img class="hero-icon" src="/brand/cerebro-icon.png?v=neural-20260603" alt="" loading="eager" />
+            <svg class="neural-overlay" viewBox="0 0 100 100" focusable="false">
+              <path class="neural-line one" d="M20 58 C34 42, 48 42, 62 27" />
+              <path class="neural-line two" d="M27 72 C43 62, 55 61, 76 44" />
+              <path class="neural-line three" d="M32 28 C48 35, 56 46, 70 67" />
+              <circle class="neural-node one" cx="62" cy="27" r="3" />
+              <circle class="neural-node two" cx="76" cy="44" r="2.7" />
+              <circle class="neural-node three" cx="70" cy="67" r="2.5" />
+            </svg>
+          </span>
         </div>
 
         <div class="chat-log" id="chatLog" aria-live="polite">
@@ -1294,7 +1493,17 @@
   <label class="drawer-scrim" id="drawerScrim" for="drawerToggle" aria-hidden="true"></label>
   <aside class="mobile-drawer" id="mobileDrawer" aria-label="Menu mobile" aria-hidden="true">
     <div class="sidebar-brand">
-      <img class="brand-icon" src="/brand/cerebro-icon.png?v=visual-20260603" alt="" loading="eager" />
+      <span class="brand-mark" aria-hidden="true">
+        <img class="brand-icon" src="/brand/cerebro-icon.png?v=neural-20260603" alt="" loading="eager" />
+        <svg class="neural-overlay" viewBox="0 0 100 100" focusable="false">
+          <path class="neural-line one" d="M20 58 C34 42, 48 42, 62 27" />
+          <path class="neural-line two" d="M27 72 C43 62, 55 61, 76 44" />
+          <path class="neural-line three" d="M32 28 C48 35, 56 46, 70 67" />
+          <circle class="neural-node one" cx="62" cy="27" r="3" />
+          <circle class="neural-node two" cx="76" cy="44" r="2.7" />
+          <circle class="neural-node three" cx="70" cy="67" r="2.5" />
+        </svg>
+      </span>
       <div>
         <strong>CEREBRO</strong>
         <span>Chief of Staff</span>
@@ -1329,7 +1538,7 @@
 
     function mountIcons() {
       document.querySelectorAll(".brand-icon, .hero-icon").forEach((target) => {
-        if (target.tagName === "IMG") target.setAttribute("src", "/brand/cerebro-icon.png?v=visual-20260603");
+        if (target.tagName === "IMG") target.setAttribute("src", "/brand/cerebro-icon.png?v=neural-20260603");
       });
     }
 

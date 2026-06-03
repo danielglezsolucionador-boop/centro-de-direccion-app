@@ -16,6 +16,7 @@ Corregir quirurgicamente la capa visual de CEREBRO para acercarla a la referenci
 ## Backup
 
 - Backup previo: `D:\ECOSYSTEM\BACKUPS\cerebro-visual-correction-prechange-20260603-020720.zip`
+- Backup neural visual: `D:\ECOSYSTEM\BACKUPS\cerebro-neural-visual-prechange-20260603-022351.zip`
 - Excluido del backup: `.git`, `node_modules`, `.env`, `.env.*`, `*.log`
 
 ## Archivos modificados
@@ -27,10 +28,11 @@ Corregir quirurgicamente la capa visual de CEREBRO para acercarla a la referenci
 
 - Se mantuvo `public/brand/cerebro-icon.png` como asset de imagen, no como dibujo CSS.
 - Se mantuvo placeholder limpio tipo circulo premium + inicial/simbolo simple.
-- Se actualizo cache-busting del asset a `?v=visual-20260603`.
+- Se actualizo cache-busting del asset a `?v=neural-20260603`.
 - Header queda visualmente limitado a `CEREBRO` y `Chief of Staff`.
 - Se ocultaron controles tecnicos del header para no competir con la marca.
 - Hero mantiene `CEREBRO` y `La segunda mente mas importante de la organizacion`.
+- Hero agrega copy ejecutivo breve: `Chief of Staff ejecutivo para convertir contexto, prioridades y decisiones en direccion clara.`
 - Chat queda como foco central con mayor profundidad, superficie elevada, borde fino y acento champagne.
 - Input del chat queda visible en desktop 1440x900 y mobile 390x844.
 - Copy inicial del chat:
@@ -38,6 +40,9 @@ Corregir quirurgicamente la capa visual de CEREBRO para acercarla a la referenci
 - Botones reforzados con bordes, sombra suave, elevacion hover y dorado premium.
 - Paneles laterales quedan secundarios y no compiten con el chat.
 - Mobile mantiene hamburger, chat primero y paneles secundarios ocultos.
+- Se agrego animacion neuronal sutil mediante overlay SVG/CSS sobre el asset existente.
+- La animacion usa microimpulsos dorados lentos, sin neon agresivo y sin iluminar todo el logo a la vez.
+- `prefers-reduced-motion: reduce` reduce/desactiva la animacion.
 
 ## No se toco
 
@@ -66,6 +71,13 @@ Corregir quirurgicamente la capa visual de CEREBRO para acercarla a la referenci
 - Input visible desktop: PASS
 - Input visible mobile: PASS
 - Imagen de marca carga correctamente: PASS
+- Animacion neuronal visible y sutil: PASS
+- `prefers-reduced-motion`: PASS
+- `brand-mark` renderizados: 4
+- `neural-overlay` renderizados: 4
+- Desktop animation-name: `neuralImpulse` / `neuralNodePulse`
+- Mobile animation-name: `neuralImpulse` / `neuralNodePulse`
+- Copy hero ejecutivo: PASS
 - Imagenes rotas: 0
 - Console errors local: 0
 - `Centro de Direccion` visible: NO
@@ -77,7 +89,7 @@ Corregir quirurgicamente la capa visual de CEREBRO para acercarla a la referenci
 
 - URL: `https://cerebro-app-eta.vercel.app`
 - Deploy automatico Vercel: PASS
-- HTML productivo contiene `visual-20260603`: PASS
+- HTML productivo contiene `neural-20260603`: Pendiente post-push
 - `/runtime/status`: 200
 - `/storage/status`: 200
 - Desktop produccion `1440x900`: PASS
@@ -92,6 +104,8 @@ Corregir quirurgicamente la capa visual de CEREBRO para acercarla a la referenci
 - Imagenes rotas produccion: 0
 - Console errors produccion: 0
 - HTML productivo contiene copy inicial correcto: PASS
+- Animacion neuronal produccion: Pendiente post-push
+- `prefers-reduced-motion` produccion: Pendiente post-push
 - `Centro de Direccion` en HTML productivo: NO
 - Saludo generico en HTML productivo: NO
 
@@ -111,3 +125,4 @@ por el icono final aprobado de figura humana pensativa.
 - KV/persistencia intactos: SI
 - Deploy produccion: PASS
 - Correccion visual en produccion: PASS
+- Animacion neuronal: PASS local / pendiente produccion
